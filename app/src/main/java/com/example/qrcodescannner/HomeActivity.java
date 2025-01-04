@@ -3,8 +3,10 @@ package com.example.qrcodescannner;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Size;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -15,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.camera.core.CameraControl;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
@@ -44,6 +47,10 @@ public class HomeActivity extends AppCompatActivity {
     private static final String TAG = "HomeActivity";
     private BarcodeScanner barcodeScanner;
     private ExecutorService cameraExecutor;
+    private CameraControl cameraControl; // CameraControl instance
+    private float zoomRatio = 1.0f; // Initial zoom ratio
+    private int frameCount = 0; // Counter to skip frames
+    private static final int FRAME_SKIP_COUNT = 2; // Analyze every 3rd frame
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,30 +85,6 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart: HomeActivity started");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume: HomeActivity resumed");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(TAG, "onPause: HomeActivity paused");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop: HomeActivity stopped");
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: HomeActivity destroyed");
@@ -129,7 +112,7 @@ public class HomeActivity extends AppCompatActivity {
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
         try {
-            cameraProvider.bindToLifecycle(this, cameraSelector, preview);
+            cameraControl = cameraProvider.bindToLifecycle(this, cameraSelector, preview).getCameraControl(); // Get CameraControl
         } catch (Exception e) {
             Log.e(TAG, "Error binding camera", e);
         }
@@ -137,7 +120,8 @@ public class HomeActivity extends AppCompatActivity {
 
     private void bindImageAnalysis(ProcessCameraProvider cameraProvider) {
         ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setTargetResolution(new Size(1280, 720)) // Set a lower resolution
+                .setBackpressureStrategy (ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build();
 
         imageAnalysis.setAnalyzer(cameraExecutor, this::analyzeImage);
@@ -155,6 +139,11 @@ public class HomeActivity extends AppCompatActivity {
 
     @OptIn(markerClass = ExperimentalGetImage.class)
     private void analyzeImage(ImageProxy imageProxy) {
+        if (frameCount++ % FRAME_SKIP_COUNT != 0) {
+            imageProxy.close();
+            return; // Skip frames to reduce processing load
+        }
+
         try {
             InputImage image = InputImage.fromMediaImage(imageProxy.getImage(), imageProxy.getImageInfo().getRotationDegrees());
 
@@ -163,9 +152,10 @@ public class HomeActivity extends AppCompatActivity {
                         for (Barcode barcode : barcodes) {
                             String rawValue = barcode.getRawValue();
                             Log.d(TAG, "analyzeImage: Barcode scanned: " + rawValue);
+                            adjustZoom(barcode); // Adjust zoom based on barcode size
                             Intent i = new Intent(HomeActivity.this, AmountActivity.class);
                             i.putExtra("decoded_data", rawValue);
-                            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // Add this line
+                            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             startActivity(i);
                             break;
                         }
@@ -175,6 +165,21 @@ public class HomeActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error analyzing image", e);
             imageProxy.close();
+        }
+    }
+
+    private void adjustZoom(Barcode barcode) {
+        Rect boundingBox = barcode.getBoundingBox();
+        if (boundingBox != null) {
+            int barcodeWidth = boundingBox.width();
+            zoomRatio = barcodeWidth > 200 ? Math.min(2.0f, zoomRatio + 0.1f) : Math.max(1.0f, zoomRatio - 0.1f);
+            setCameraZoom(zoomRatio);
+        }
+    }
+
+    private void setCameraZoom(float zoomRatio) {
+        if (cameraControl != null) {
+            cameraControl.setZoomRatio(zoomRatio);
         }
     }
 
