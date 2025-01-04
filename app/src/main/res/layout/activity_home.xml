@@ -1,43 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:background="@color/black_shade_1"
+    android:background="#C8C6C6"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.example.qrcodescannner.HomeActivity">
-
-    <ImageView
-        android:id="@+id/imageView3"
-        android:layout_centerHorizontal="true"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_marginTop="30dp"
-        app:srcCompat="@drawable/img"
-        />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/imageView3"
-        android:id="@+id/Heading"
-        android:layout_marginTop="20dp"
-        android:text="Welcome to UPI scanner"
-        android:gravity="center"
-        android:textAlignment="center"
-        android:textSize="40dp"
-        android:textColor="@color/yellow"
-        android:textStyle="bold"/>
+    android:layout_height="match_parent">
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/Heading"
-        android:layout_marginStart="150sp"
         android:layout_marginTop="30dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:id="@+id/profile"
+        app:icon="@drawable/profile_icon"
+        style="?attr/materialIconButtonFilledStyle"
+        android:contentDescription="Profile" />
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/card"
+        app:cardBackgroundColor="@color/black_shade_1"
+        app:cardElevation="4dp"
+        app:cardCornerRadius="15dp"
+        android:layout_below="@+id/profile"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            />
+    </androidx.cardview.widget.CardView>
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_below="@id/card"
+        android:layout_centerHorizontal="true"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="30dp"
+        app:srcCompat="@drawable/img"/>
+
+    <TextView
+        android:id="@+id/Heading"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageView3"
+        android:layout_marginTop="20dp"
+        android:text="Welcome to UPI scanner"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:textSize="40sp"
+        android:textColor="#FF9800"
+        android:textStyle="bold"/>
+
+    <Button
         android:id="@+id/Scanbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/Heading"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
         android:text="Scan the QR code"
         android:background="@drawable/btnback" />
-
 </RelativeLayout>

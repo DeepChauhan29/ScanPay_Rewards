@@ -27,11 +27,14 @@
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp">
 
-        <ImageView
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:src="@drawable/gpaylogo"
-            />
+        <RadioButton
+            android:id="@+id/customRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:button="@null"
+            android:background="@drawable/gpaylogo"
+            android:padding="16dp"
+            android:layout_margin="8dp" />
 
     </androidx.cardview.widget.CardView>
 

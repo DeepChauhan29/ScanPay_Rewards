@@ -56,11 +56,55 @@
         android:textSize="40sp"
         tools:ignore="HardcodedText,LabelFor" />
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:id="@+id/gpaycard"
+        android:layout_below="@+id/amount"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <RadioButton
+            android:id="@+id/gpayRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:button="@null"
+            android:background="@drawable/gpaylogo"
+            android:padding="16dp"
+            android:layout_margin="8dp" />
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:id="@+id/credcard"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/amount"
+        android:layout_toEndOf="@id/gpaycard"
+        android:layout_marginEnd="20dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <RadioButton
+            android:id="@+id/credRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:button="@null"
+            android:background="@drawable/credlogo"
+            android:padding="16dp"
+            android:layout_margin="8dp" />
+
+    </androidx.cardview.widget.CardView>
+
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/amount"
+        android:layout_below="@+id/credcard"
         android:layout_marginTop="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"

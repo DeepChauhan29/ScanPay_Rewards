@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -85,9 +86,10 @@ public class UpiAppSelection extends AppCompatActivity {
                 showDownloadDialog("CRED Not Installed", credPlayStoreLink);
             }
         } else if (selectedCard == findViewById(R.id.navicard)) {
-            intent.setPackage(naviPackageName); // Set Navi package name
             if (isAppInstalled(naviPackageName)) {
+                intent.setPackage(naviPackageName); // Set Navi package name
                 startActivity(intent);
+                Toast.makeText(this, "Press back to return to the UPI-Payment page.", Toast.LENGTH_LONG).show();
             } else {
                 showDownloadDialog("Navi Not Installed", naviPlayStoreLink);
             }
