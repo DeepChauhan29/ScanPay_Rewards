@@ -124,9 +124,8 @@ public class AmountActivity extends AppCompatActivity {
 
 //    private void selectPaymentMethod(String selectedApp) {
 //
-//
-////        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-////        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1); // Color for unselected
+//        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
+//        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1); // Color for unselected
 //
 //        // Set the background color for the selected and unselected states
 //
