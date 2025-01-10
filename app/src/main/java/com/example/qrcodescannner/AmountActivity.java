@@ -1,5 +1,6 @@
 package com.example.qrcodescannner;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -40,7 +41,7 @@ public class AmountActivity extends AppCompatActivity {
 
     private RadioButton credRadio;
     private boolean isGpaySelected = true; // Set Gpay as default selected
-    private boolean isCredSelected = true;
+    private boolean isCredSelected = false;
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
     private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
 
@@ -79,9 +80,10 @@ public class AmountActivity extends AppCompatActivity {
     private void setupListeners() {
         amountEditText.addTextChangedListener(new AmountTextWatcher());
         payButton.setOnClickListener(v -> handlePayment());
+
         gpayRadio.setOnClickListener(v -> {
-            isGpaySelected = true;
             isCredSelected = false;
+            isGpaySelected = true;
             int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
             int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
             gpayCard.setCardBackgroundColor(selectedColor);
@@ -174,18 +176,20 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private void parseUPIData(String qrCodeData) {
-        String[] dataParts = qrCodeData.split("&");
-        for (String part : dataParts) {
-            if (part.startsWith("pn=")) {
-                String payeeName = part.substring(3).replace("+", " ");
-                payeeNameTextView.setText(payeeName);
-            } else if (part.startsWith("pa=")) {
-                String upiId = part.substring(3);
-                upiIdTextView.setText(Uri.decode(upiId));
-            }
+
+        try {
+            Uri uri = Uri.parse(qrCodeData);
+            String upiId = uri.getQueryParameter("pa");
+            String payeeName = uri.getQueryParameter("pn");
+
+            // Set the extracted data to the TextViews
+            upiIdTextView.setText(upiId != null ? upiId : "UPI ID not found");
+            payeeNameTextView.setText(payeeName != null ? payeeName : "Payee name not found");
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Error parsing UPI data", Toast.LENGTH_SHORT).show();
         }
     }
-
     private void launchGPay(int amount) {
         launchPayment("com.google.android.apps.nbu.paisa.user", amount);
     }
@@ -195,22 +199,36 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private void launchPayment(String packageName, int amount) {
-        String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() + "&pn=" + payeeNameTextView.getText().toString() + "&mc=1234&tid=1234567890&tt=Test&am=" + amount + "&cu=INR&url=https://example.com";
+        String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() +
+                "&pn=" + payeeNameTextView.getText().toString() +
+                "&mc=1234&tid=1234567890&tt=Test&am=" + amount +
+                "&cu=INR&url=https://example.com";
+
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(uri));
-        intent.setPackage(packageName); // Set CRED package name
+        intent.setPackage(packageName); // Set the package name
 
-           if (isAppInstalled(packageName)) {
-               startActivity(intent);
-           } else {
-               showDownloadDialog("CRED Not Installed", credPlayStoreLink);
-           }
-
+        // Check if the app is installed
         if (isAppInstalled(packageName)) {
-            intent.setPackage(packageName);
-            startActivity(intent);
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(this, "No application found to handle this payment", Toast.LENGTH_SHORT).show();
+                // Optionally, you can show a chooser for available UPI apps
+                Intent chooser = Intent.createChooser(intent, "Pay with");
+                startActivity(chooser);
+            }
         } else {
-            Toast.makeText(this, packageName.equals("com.google.android.apps.nbu.paisa.user") ? "Google Pay is not installed" : "Cred is not installed", Toast.LENGTH_SHORT).show();
+            showDownloadDialog("App Not Installed", credPlayStoreLink);
+        }
+    }
+
+    private boolean isAppInstalled(String packageName) {
+        try {
+            getPackageManager().getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            return true; // App is installed
+        } catch (PackageManager.NameNotFoundException e) {
+            return false; // App is not installed
         }
     }
 
@@ -233,14 +251,5 @@ public class AmountActivity extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
-    }
-
-    private boolean isAppInstalled(String packageName) {
-        try {
-            getPackageManager().getPackageInfo(packageName, 0);
-            return true; // App is installed
-        } catch (PackageManager.NameNotFoundException e) {
-            return false; // App is not installed
-        }
     }
 }
