@@ -20,7 +20,6 @@
         <package android:name="com.dreamplug.androidapp" />
         <package android:name="com.naviapp" />
         <package android:name="money.super.payments" />
-        <package android:name="com.dreamplug.androidapp" />
         <!-- Add other UPI app package names if needed -->
     </queries>
 

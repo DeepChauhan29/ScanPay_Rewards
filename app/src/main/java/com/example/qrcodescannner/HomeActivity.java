@@ -151,13 +151,33 @@ public class HomeActivity extends AppCompatActivity {
                     .addOnSuccessListener(barcodes -> {
                         for (Barcode barcode : barcodes) {
                             String rawValue = barcode.getRawValue();
-                            Log.d(TAG, "analyzeImage: Barcode scanned: " + rawValue);
-                            adjustZoom(barcode); // Adjust zoom based on barcode size
-                            Intent i = new Intent(HomeActivity.this, AmountActivity.class);
-                            i.putExtra("decoded_data", rawValue);
-                            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(i);
-                            break;
+                            Log.d(TAG, "Scanned QR Code Data: " + rawValue);
+
+                            if (rawValue != null && rawValue.contains("upi://")) {
+                                // Extract UPI ID
+                                String upiId = null;
+                                String[] parameters = rawValue.split("&");
+                                for (String param : parameters) {
+                                    if (param.startsWith("pa=")) {
+                                        upiId = param.split("=")[1];
+                                        break;
+                                    }
+                                }
+
+                                if (upiId != null) {
+                                    Log.d(TAG, "Extracted UPI ID: " + upiId);
+                                    Intent i = new Intent(HomeActivity.this, AmountActivity.class);
+                                    i.putExtra("decoded_data", rawValue);
+                                    i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    startActivity(i);
+                                    break;
+                                } else {
+                                    Log.w(TAG, "UPI ID not found in QR Code");
+                                    Toast.makeText(this, "Invalid UPI QR Code", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Log.w(TAG, "Non-UPI QR Code detected");
+                            }
                         }
                     })
                     .addOnFailureListener(e -> Log.e(TAG, "Barcode detection failed", e))
@@ -167,6 +187,7 @@ public class HomeActivity extends AppCompatActivity {
             imageProxy.close();
         }
     }
+
 
     private void adjustZoom(Barcode barcode) {
         Rect boundingBox = barcode.getBoundingBox();

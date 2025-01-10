@@ -1,6 +1,7 @@
 package com.example.qrcodescannner;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -10,6 +11,8 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -37,8 +40,10 @@ public class AmountActivity extends AppCompatActivity {
 
     private RadioButton credRadio;
     private boolean isGpaySelected = true; // Set Gpay as default selected
-    private boolean isCredSelected;
+    private boolean isCredSelected = true;
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
+    private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
+
     private boolean isFormatting; // Flag to prevent recursive calls
     ArrayList<String> arr = new ArrayList<>(
             List.of("GPay", "Cred")
@@ -75,12 +80,16 @@ public class AmountActivity extends AppCompatActivity {
         amountEditText.addTextChangedListener(new AmountTextWatcher());
         payButton.setOnClickListener(v -> handlePayment());
         gpayRadio.setOnClickListener(v -> {
+            isGpaySelected = true;
+            isCredSelected = false;
             int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
             int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
             gpayCard.setCardBackgroundColor(selectedColor);
             credpayCard.setCardBackgroundColor(unselectedColor);
         }); // For Google Pay
         credRadio.setOnClickListener(v -> {
+            isCredSelected = true;
+            isGpaySelected = false;
             int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
             int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
             credpayCard.setCardBackgroundColor(selectedColor);
@@ -116,34 +125,11 @@ public class AmountActivity extends AppCompatActivity {
         // Proceed with the selected payment method
         if (isGpaySelected) {
             launchGPay(Integer.parseInt(amount));
-        } else {
+        }
+        if(isCredSelected){
             launchCred(Integer.parseInt(amount));
         }
     }
-
-
-//    private void selectPaymentMethod(String selectedApp) {
-//
-//        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-//        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1); // Color for unselected
-//
-//        // Set the background color for the selected and unselected states
-//
-//        gpayCard.setCardBackgroundColor(selectedColor);
-//        credpayCard.setCardBackgroundColor(unselectedColor);
-//    }
-
-//    private void selectCredPaymentMethod(String selectedApp) {
-//        // Define colors
-//        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-//        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1); // Color for unselected
-//
-//        // Set the background color for the selected and unselected states
-//            credpayCard.setCardBackgroundColor(selectedColor);
-//            gpayCard.setCardBackgroundColor(unselectedColor);
-//
-//    }
-
 
     private class AmountTextWatcher implements TextWatcher {
         private String current = "";
@@ -209,14 +195,16 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private void launchPayment(String packageName, int amount) {
-        String upiUri = "upi://pay?pa=" + upiIdTextView.getText().toString() +
-                "&pn=" + payeeNameTextView.getText().toString() +
-                "&am=" + amount +
-                "&cu=INR" +
-                "&tn=Payment for your order";
-
+        String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() + "&pn=" + payeeNameTextView.getText().toString() + "&mc=1234&tid=1234567890&tt=Test&am=" + amount + "&cu=INR&url=https://example.com";
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(upiUri));
+        intent.setData(Uri.parse(uri));
+        intent.setPackage(packageName); // Set CRED package name
+
+           if (isAppInstalled(packageName)) {
+               startActivity(intent);
+           } else {
+               showDownloadDialog("CRED Not Installed", credPlayStoreLink);
+           }
 
         if (isAppInstalled(packageName)) {
             intent.setPackage(packageName);
@@ -224,6 +212,27 @@ public class AmountActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, packageName.equals("com.google.android.apps.nbu.paisa.user") ? "Google Pay is not installed" : "Cred is not installed", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void showDownloadDialog(String title, String playStoreLink) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage("The selected app is not installed. Do you want to continue to the Play Store to download it?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Redirect to Play Store
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(playStoreLink));
+                        startActivity(intent);
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss(); // Just close the dialog
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     private boolean isAppInstalled(String packageName) {
