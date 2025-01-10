@@ -64,8 +64,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/Heading"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:text="Scan the QR code"
-        android:background="@drawable/btnback" />
+        android:layout_marginTop="0dp"
+        android:background="@drawable/btnback"
+        android:text="Scan the QR code" />
 </RelativeLayout>

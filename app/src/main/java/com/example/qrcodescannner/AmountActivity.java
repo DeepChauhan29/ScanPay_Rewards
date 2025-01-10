@@ -12,6 +12,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import androidx.cardview.widget.CardView;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,6 +21,8 @@ import androidx.core.content.ContextCompat;
 import com.example.qrcodescanner.R;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class AmountActivity extends AppCompatActivity {
@@ -30,11 +33,17 @@ public class AmountActivity extends AppCompatActivity {
     private EditText amountEditText;
 
     private CardView gpayCard, credpayCard;
-    private boolean isGpaySelected = true; // Set Google Pay as default selected
-    private boolean isSelectionLocked = false; // New variable to lock selection
+    private RadioButton gpayRadio;
 
+    private RadioButton credRadio;
+    private boolean isGpaySelected = true; // Set Gpay as default selected
+    private boolean isCredSelected;
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
     private boolean isFormatting; // Flag to prevent recursive calls
+    ArrayList<String> arr = new ArrayList<>(
+            List.of("GPay", "Cred")
+    );
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +55,8 @@ public class AmountActivity extends AppCompatActivity {
         handleIntentData();
         requestFocusOnAmountEditText();
 
-        // Set Google Pay as the default selected option visually
-        selectPaymentMethod(true);
+        // Set Cred as the default selected option visually
+//        selectPaymentMethod("GPay");
     }
 
     private void initializeViews() {
@@ -58,13 +67,25 @@ public class AmountActivity extends AppCompatActivity {
         Button backButton = findViewById(R.id.bk);
         gpayCard = findViewById(R.id.gpaycard);
         credpayCard = findViewById(R.id.credcard);
+        gpayRadio = findViewById(R.id.gpayRadioButton);
+        credRadio = findViewById(R.id.credRadioButton);
     }
 
     private void setupListeners() {
         amountEditText.addTextChangedListener(new AmountTextWatcher());
         payButton.setOnClickListener(v -> handlePayment());
-        gpayCard.setOnClickListener(v -> selectPaymentMethod(true));
-        credpayCard.setOnClickListener(v -> selectPaymentMethod(false));
+        gpayRadio.setOnClickListener(v -> {
+            int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
+            int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
+            gpayCard.setCardBackgroundColor(selectedColor);
+            credpayCard.setCardBackgroundColor(unselectedColor);
+        }); // For Google Pay
+        credRadio.setOnClickListener(v -> {
+            int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
+            int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
+            credpayCard.setCardBackgroundColor(selectedColor);
+            gpayCard.setCardBackgroundColor(unselectedColor);
+        }); // For Cred
         findViewById(R.id.bk).setOnClickListener(v -> finish());
     }
 
@@ -85,36 +106,14 @@ public class AmountActivity extends AppCompatActivity {
         }
     }
 
-    private void selectPaymentMethod(boolean isGpay) {
-        if (isSelectionLocked) {
-            Toast.makeText(this, "You cannot change the payment method at this time.", Toast.LENGTH_SHORT).show();
-            return; // Prevent changing the selection if locked
-        }
-        this.isGpaySelected = isGpay;
-
-        // Define colors
-        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1); // Color for unselected
-
-        // Set the background color for the selected and unselected states
-        gpayCard.setCardBackgroundColor(isGpay ? selectedColor : unselectedColor);
-        credpayCard.setCardBackgroundColor(isGpay ? unselectedColor : selectedColor);
-    }
-
     private void handlePayment() {
         String amount = amountEditText.getText().toString().replace(",", ""); // Get the amount without commas
-        if (TextUtils.isEmpty(amount)) {
-            Toast.makeText(AmountActivity.this, "Please enter an amount", Toast.LENGTH_SHORT).show();
-            return; // Prevent navigation
-        }
-        if (!isGpaySelected && !credpayCard.isSelected()) {
-            Toast.makeText(AmountActivity.this, "Please select a payment method", Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(amount) || Integer.parseInt(amount) <= 0) {
+            Toast.makeText(AmountActivity.this, "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show();
             return; // Prevent navigation
         }
 
-        // Lock the selection after initiating payment
-        isSelectionLocked = true;
-
+        // Proceed with the selected payment method
         if (isGpaySelected) {
             launchGPay(Integer.parseInt(amount));
         } else {
@@ -122,13 +121,36 @@ public class AmountActivity extends AppCompatActivity {
         }
     }
 
+
+//    private void selectPaymentMethod(String selectedApp) {
+//
+//
+////        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
+////        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1); // Color for unselected
+//
+//        // Set the background color for the selected and unselected states
+//
+//        gpayCard.setCardBackgroundColor(selectedColor);
+//        credpayCard.setCardBackgroundColor(unselectedColor);
+//    }
+
+//    private void selectCredPaymentMethod(String selectedApp) {
+//        // Define colors
+//        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
+//        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1); // Color for unselected
+//
+//        // Set the background color for the selected and unselected states
+//            credpayCard.setCardBackgroundColor(selectedColor);
+//            gpayCard.setCardBackgroundColor(unselectedColor);
+//
+//    }
+
+
     private class AmountTextWatcher implements TextWatcher {
         private String current = "";
 
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            // No action needed before text changes
-        }
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -148,7 +170,7 @@ public class AmountActivity extends AppCompatActivity {
                         current = formattedAmount; // Update current to the formatted amount
                         amountEditText.setText(formattedAmount);
                         amountEditText.setSelection(formattedAmount.length()); // Move cursor to the end
-                        payButton.setText("Pay ₹" +formattedAmount);
+                        payButton.setText("Pay ₹" + formattedAmount);
                         payButton.setEnabled(true); // Enable the pay button
                         isFormatting = false; // Reset the flag
                     }
@@ -163,9 +185,7 @@ public class AmountActivity extends AppCompatActivity {
         }
 
         @Override
-        public void afterTextChanged(Editable s) {
-            // No action needed after text changes
-        }
+        public void afterTextChanged(Editable s) {}
     }
 
     private void parseUPIData(String qrCodeData) {
