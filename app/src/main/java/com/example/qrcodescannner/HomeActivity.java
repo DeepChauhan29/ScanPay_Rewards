@@ -176,6 +176,10 @@ public class HomeActivity extends AppCompatActivity {
         String upiId = null;
         String name = null;
         String amount = null; // Optional: Amount to be paid
+        String mode = null;
+        String version = null;
+        String transactionType = null;
+        String qrMedium = null;
 
         // Remove the "upi://pay?" prefix before splitting
         String parametersString = rawValue.substring(rawValue.indexOf("?") + 1);
@@ -189,13 +193,25 @@ public class HomeActivity extends AppCompatActivity {
                 Log.d(TAG, "Key: " + key + ", Value: " + value);
                 switch (key) {
                     case "pa": // Payee address
-                        upiId = value; // Directly assign the value
+                        upiId = value.replace("%40", "@"); // Decode the UPI ID
                         break;
                     case "pn": // Payee name
                         name = value;
                         break;
                     case "am": // Amount (if applicable)
                         amount = value;
+                        break;
+                    case "mode": // Mode of payment
+                        mode = value;
+                        break;
+                    case "ver": // Version
+                        version = value;
+                        break;
+                    case "txntype": // Transaction type
+                        transactionType = value;
+                        break;
+                    case "qrmedium": // QR medium
+                        qrMedium = value;
                         break;
                 }
             } else {
@@ -208,6 +224,10 @@ public class HomeActivity extends AppCompatActivity {
             Log.d(TAG, "Extracted UPI ID: " + upiId);
             Log.d(TAG, "Extracted Payee Name: " + (name != null ? name : "N/A"));
             Log.d(TAG, "Extracted Amount: " + (amount != null ? amount : "N/A"));
+            Log.d(TAG, "Extracted Mode: " + (mode != null ? mode : "N/A"));
+            Log.d(TAG, "Extracted Version: " + (version != null ? version : "N/A"));
+            Log.d(TAG, "Extracted Transaction Type: " + (transactionType != null ? transactionType : "N/A"));
+            Log.d(TAG, "Extracted QR Medium: " + (qrMedium != null ? qrMedium : "N/A"));
 
             // Start the next activity with the extracted data
             Intent i = new Intent(HomeActivity.this, AmountActivity.class);
@@ -215,6 +235,10 @@ public class HomeActivity extends AppCompatActivity {
             i.putExtra("upi_id", upiId);
             i.putExtra("payee_name", name != null ? name : "Unknown");
             i.putExtra("amount", amount != null ? amount : "0");
+            i.putExtra("mode", mode);
+            i.putExtra("version", version);
+            i.putExtra("transaction_type", transactionType);
+            i.putExtra("qr_medium", qrMedium);
             i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
         } else {

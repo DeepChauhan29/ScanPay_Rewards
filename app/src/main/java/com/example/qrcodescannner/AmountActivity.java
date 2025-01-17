@@ -12,7 +12,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import android.widget.EditText;
@@ -38,7 +37,6 @@ public class AmountActivity extends AppCompatActivity {
 
     private CardView gpayCard, credpayCard;
     private RadioButton gpayRadio;
-
     private RadioButton credRadio;
     private boolean isGpaySelected = true; // Set Gpay as default selected
     private boolean isCredSelected = false;
@@ -46,10 +44,6 @@ public class AmountActivity extends AppCompatActivity {
     private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
 
     private boolean isFormatting; // Flag to prevent recursive calls
-    ArrayList<String> arr = new ArrayList<>(
-            List.of("GPay", "Cred")
-    );
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,13 +54,7 @@ public class AmountActivity extends AppCompatActivity {
         setupListeners();
         handleIntentData();
         requestFocusOnAmountEditText();
-
-        //default GPay
-        isGpaySelected = true;
-        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
-        gpayCard.setCardBackgroundColor(selectedColor);
-        credpayCard.setCardBackgroundColor(unselectedColor);
+        updateCardSelection(); // Set default card selection
     }
 
     private void initializeViews() {
@@ -74,7 +62,6 @@ public class AmountActivity extends AppCompatActivity {
         upiIdTextView = findViewById(R.id.UpiID);
         amountEditText = findViewById(R.id.amount);
         payButton = findViewById(R.id.payButton);
-        Button backButton = findViewById(R.id.bk);
         gpayCard = findViewById(R.id.gpaycard);
         credpayCard = findViewById(R.id.credcard);
         gpayRadio = findViewById(R.id.gpayRadioButton);
@@ -88,20 +75,23 @@ public class AmountActivity extends AppCompatActivity {
         gpayRadio.setOnClickListener(v -> {
             isCredSelected = false;
             isGpaySelected = true;
-            int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-            int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
-            gpayCard.setCardBackgroundColor(selectedColor);
-            credpayCard.setCardBackgroundColor(unselectedColor);
-        }); // For Google Pay
+            updateCardSelection();
+        });
+
         credRadio.setOnClickListener(v -> {
             isCredSelected = true;
             isGpaySelected = false;
-            int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-            int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
-            credpayCard.setCardBackgroundColor(selectedColor);
-            gpayCard.setCardBackgroundColor(unselectedColor);
-        }); // For Cred
+            updateCardSelection();
+        });
+
         findViewById(R.id.bk).setOnClickListener(v -> finish());
+    }
+
+    private void updateCardSelection() {
+        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
+        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
+        gpayCard.setCardBackgroundColor(isGpaySelected ? selectedColor : unselectedColor);
+        credpayCard.setCardBackgroundColor(isCredSelected ? selectedColor : unselectedColor);
     }
 
     private void handleIntentData() {
@@ -132,7 +122,7 @@ public class AmountActivity extends AppCompatActivity {
         if (isGpaySelected) {
             launchGPay(Integer.parseInt(amount));
         }
-        if(isCredSelected){
+        if (isCredSelected) {
             launchCred(Integer.parseInt(amount));
         }
     }
@@ -180,7 +170,6 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private void parseUPIData(String qrCodeData) {
-
         try {
             Uri uri = Uri.parse(qrCodeData);
             String upiId = uri.getQueryParameter("pa");
@@ -194,6 +183,7 @@ public class AmountActivity extends AppCompatActivity {
             Toast.makeText(this, "Error parsing UPI data", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void launchGPay(int amount) {
         launchPayment("com.google.android.apps.nbu.paisa.user", amount);
     }
