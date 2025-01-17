@@ -61,8 +61,12 @@ public class AmountActivity extends AppCompatActivity {
         handleIntentData();
         requestFocusOnAmountEditText();
 
-        // Set Cred as the default selected option visually
-//        selectPaymentMethod("GPay");
+        //default GPay
+        isGpaySelected = true;
+        int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
+        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
+        gpayCard.setCardBackgroundColor(selectedColor);
+        credpayCard.setCardBackgroundColor(unselectedColor);
     }
 
     private void initializeViews() {
