@@ -124,7 +124,7 @@ public class HomeActivity extends AppCompatActivity {
                 .setBackpressureStrategy (ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build();
 
-        imageAnalysis.setAnalyzer(cameraExecutor, this::analyzeImage);
+        imageAnalysis.setAnalyzer(cameraExecutor, this::universalUPIScanner);
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
                 .requireLensFacing(CameraSelector.LENS_FACING_BACK)
@@ -138,7 +138,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     @OptIn(markerClass = ExperimentalGetImage.class)
-    private void analyzeImage(ImageProxy imageProxy) {
+    private void universalUPIScanner(ImageProxy imageProxy) {
         if (frameCount++ % FRAME_SKIP_COUNT != 0) {
             imageProxy.close();
             return; // Skip frames to reduce processing load
@@ -153,34 +153,18 @@ public class HomeActivity extends AppCompatActivity {
                             String rawValue = barcode.getRawValue();
                             Log.d(TAG, "Scanned QR Code Data: " + rawValue);
 
-                            if (rawValue != null && rawValue.contains("upi://")) {
-                                // Extract UPI ID
-                                String upiId = null;
-                                String[] parameters = rawValue.split("&");
-                                for (String param : parameters) {
-                                    if (param.startsWith("pa=")) {
-                                        upiId = param.split("=")[1];
-                                        break;
-                                    }
-                                }
-
-                                if (upiId != null) {
-                                    Log.d(TAG, "Extracted UPI ID: " + upiId);
-                                    Intent i = new Intent(HomeActivity.this, AmountActivity.class);
-                                    i.putExtra("decoded_data", rawValue);
-                                    i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                    startActivity(i);
-                                    break;
-                                } else {
-                                    Log.w(TAG, "UPI ID not found in QR Code");
-                                    Toast.makeText(this, "Invalid UPI QR Code", Toast.LENGTH_SHORT).show();
-                                }
+                            if (rawValue != null && rawValue.startsWith("upi://")) {
+                                parseUPIData(rawValue);
                             } else {
                                 Log.w(TAG, "Non-UPI QR Code detected");
+                                Toast.makeText(this, "This is not a valid UPI QR Code", Toast.LENGTH_SHORT).show();
                             }
                         }
                     })
-                    .addOnFailureListener(e -> Log.e(TAG, "Barcode detection failed", e))
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Barcode detection failed", e);
+                        Toast.makeText(this, "Failed to scan QR Code", Toast.LENGTH_SHORT).show();
+                    })
                     .addOnCompleteListener(task -> imageProxy.close());
         } catch (Exception e) {
             Log.e(TAG, "Error analyzing image", e);
@@ -188,6 +172,61 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
+    private void parseUPIData(String rawValue) {
+        String upiId = null;
+        String name = null;
+        String amount = null; // Optional: Amount to be paid
+
+        // Remove the "upi://pay?" prefix before splitting
+        String parametersString = rawValue.substring(rawValue.indexOf("?") + 1);
+        String[] parameters = parametersString.split("&");
+
+        for (String param : parameters) {
+            String[] keyValue = param.split("=");
+            if (keyValue.length == 2) {
+                String key = keyValue[0];
+                String value = keyValue[1].replace("%20", " ").replace("+", " "); // Decode URL-encoded spaces
+                Log.d(TAG, "Key: " + key + ", Value: " + value);
+                switch (key) {
+                    case "pa": // Payee address
+                        upiId = value; // Directly assign the value
+                        break;
+                    case "pn": // Payee name
+                        name = value;
+                        break;
+                    case "am": // Amount (if applicable)
+                        amount = value;
+                        break;
+                }
+            } else {
+                Log.w(TAG, "Invalid parameter format: " + param);
+            }
+        }
+
+        // Validate extracted data
+        if (isValidUPIId(upiId)) {
+            Log.d(TAG, "Extracted UPI ID: " + upiId);
+            Log.d(TAG, "Extracted Payee Name: " + (name != null ? name : "N/A"));
+            Log.d(TAG, "Extracted Amount: " + (amount != null ? amount : "N/A"));
+
+            // Start the next activity with the extracted data
+            Intent i = new Intent(HomeActivity.this, AmountActivity.class);
+            i.putExtra("decoded_data", rawValue);
+            i.putExtra("upi_id", upiId);
+            i.putExtra("payee_name", name != null ? name : "Unknown");
+            i.putExtra("amount", amount != null ? amount : "0");
+            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
+        } else {
+            Log.w(TAG, "Invalid UPI ID: " + upiId);
+            Toast.makeText(this, "Invalid UPI ID in QR Code", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isValidUPIId(String upiId) {
+        // Basic validation for UPI ID format
+        return upiId != null && upiId.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$");
+    }
 
     private void adjustZoom(Barcode barcode) {
         Rect boundingBox = barcode.getBoundingBox();
