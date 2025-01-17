@@ -195,8 +195,8 @@ public class AmountActivity extends AppCompatActivity {
     private void launchPayment(String packageName, int amount) {
         String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() +
                 "&pn=" + payeeNameTextView.getText().toString() +
-                "&mc=1234&tid=1234567890&tt=Test&am=" + amount +
-                "&cu=INR&url=https://example.com";
+                "&am=" + amount +
+                "&cu=INR";
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(uri));
