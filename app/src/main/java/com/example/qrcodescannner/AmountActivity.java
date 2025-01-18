@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import androidx.appcompat.app.AlertDialog;
@@ -273,7 +274,7 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private void launchSupermoney(int amount) {
-        launchPayment("com.super.payments", amount);
+        launchPayment("money.super.payments", amount);
     }
 
     private void launchPaytm(int amount) {
@@ -311,10 +312,12 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private boolean isAppInstalled(String packageName) {
+        Log.d("AppCheck", "Checking for package: " + packageName);
         try {
             getPackageManager().getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
             return true; // App is installed
         } catch (PackageManager.NameNotFoundException e) {
+            Log.d("AppCheck", "Package not found: " + e.getMessage());
             return false; // App is not installed
         }
     }
@@ -325,7 +328,7 @@ public class AmountActivity extends AppCompatActivity {
                 return credPlayStoreLink;
             case "com.navi.android":
                 return naviPlayStoreLink;
-            case "com.super.payments":
+            case "money.super.payments":
                 return supermoneyPlayStoreLink;
             case "net.one97.paytm":
                 return paytmPlayStoreLink;
