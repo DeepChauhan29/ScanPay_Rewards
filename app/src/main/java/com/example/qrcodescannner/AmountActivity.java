@@ -24,8 +24,6 @@ import androidx.core.content.ContextCompat;
 import com.example.qrcodescanner.R;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class AmountActivity extends AppCompatActivity {
@@ -35,13 +33,22 @@ public class AmountActivity extends AppCompatActivity {
     private Button payButton;
     private EditText amountEditText;
 
-    private CardView gpayCard, credpayCard;
-    private RadioButton gpayRadio;
-    private RadioButton credRadio;
+    private CardView gpayCard, credpayCard, naviCard, supermoneyCard, paytmCard, phonepeCard;
+    private RadioButton gpayRadio, credRadio, naviRadio, supermoneyRadio, paytmRadio, phonepeRadio;
+
     private boolean isGpaySelected = true; // Set Gpay as default selected
     private boolean isCredSelected = false;
+    private boolean isNaviSelected = false;
+    private boolean isSuperSelected = false;
+    private boolean isPaytmSelected = false;
+    private boolean isPhonepeSelected = false;
+
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
     private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
+    private String naviPlayStoreLink = "https://play.google.com/store/apps/details?id=com.navi.android"; // Navi Play Store link
+    private String supermoneyPlayStoreLink = "https://play.google.com/store/apps/details?id=com.supermoney.android"; // Supermoney Play Store link
+    private String paytmPlayStoreLink = "https://play.google.com/store/apps/details?id=net.one97.paytm"; // Paytm Play Store link
+    private String phonepePlayStoreLink = "https://play.google.com/store/apps/details?id=com.phonepe.app"; // PhonePe Play Store link
 
     private boolean isFormatting; // Flag to prevent recursive calls
 
@@ -62,10 +69,20 @@ public class AmountActivity extends AppCompatActivity {
         upiIdTextView = findViewById(R.id.UpiID);
         amountEditText = findViewById(R.id.amount);
         payButton = findViewById(R.id.payButton);
+
         gpayCard = findViewById(R.id.gpaycard);
         credpayCard = findViewById(R.id.credcard);
+        naviCard = findViewById(R.id.navicard);
+        supermoneyCard = findViewById(R.id.supermoneycard);
+        paytmCard = findViewById(R.id.paytmcard);
+        phonepeCard = findViewById(R.id.phonepecard);
+
         gpayRadio = findViewById(R.id.gpayRadioButton);
         credRadio = findViewById(R.id.credRadioButton);
+        naviRadio = findViewById(R.id.naviRadioButton);
+        supermoneyRadio = findViewById(R.id.superRadioButton);
+        paytmRadio = findViewById(R.id.paytmRadioButton);
+        phonepeRadio = findViewById(R.id.phonepeRadioButton);
     }
 
     private void setupListeners() {
@@ -73,14 +90,62 @@ public class AmountActivity extends AppCompatActivity {
         payButton.setOnClickListener(v -> handlePayment());
 
         gpayRadio.setOnClickListener(v -> {
-            isCredSelected = false;
             isGpaySelected = true;
+            isCredSelected = false;
+            isNaviSelected = false;
+            isSuperSelected = false;
+            isPaytmSelected = false;
+            isPhonepeSelected = false;
             updateCardSelection();
         });
 
         credRadio.setOnClickListener(v -> {
-            isCredSelected = true;
             isGpaySelected = false;
+            isCredSelected = true;
+            isNaviSelected = false;
+            isSuperSelected = false;
+            isPaytmSelected = false;
+            isPhonepeSelected = false;
+            updateCardSelection();
+        });
+
+        naviRadio.setOnClickListener(v -> {
+            isGpaySelected = false;
+            isCredSelected = false;
+            isNaviSelected = true;
+            isSuperSelected = false;
+            isPaytmSelected = false;
+            isPhonepeSelected = false;
+            updateCardSelection();
+        });
+
+        supermoneyRadio.setOnClickListener(v -> {
+            isGpaySelected = false;
+            isCredSelected = false;
+            isNaviSelected = false;
+            isSuperSelected = true;
+            isPaytmSelected = false;
+            isPhonepeSelected = false;
+            updateCardSelection();
+        });
+
+        paytmRadio.setOnClickListener(v -> {
+            isGpaySelected = false;
+            isCredSelected = false;
+            isNaviSelected = false;
+            isSuperSelected = false;
+            isPaytmSelected = true;
+            isPhonepeSelected = false;
+            updateCardSelection();
+        });
+
+        phonepeRadio.setOnClickListener(v -> {
+            isGpaySelected = false;
+            isCredSelected = false;
+            isNaviSelected = false;
+            isSuperSelected = false;
+            isPaytmSelected = false;
+            isPhonepeSelected = true;
             updateCardSelection();
         });
 
@@ -92,6 +157,10 @@ public class AmountActivity extends AppCompatActivity {
         int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
         gpayCard.setCardBackgroundColor(isGpaySelected ? selectedColor : unselectedColor);
         credpayCard.setCardBackgroundColor(isCredSelected ? selectedColor : unselectedColor);
+        naviCard.setCardBackgroundColor(isNaviSelected ? selectedColor : unselectedColor);
+        supermoneyCard.setCardBackgroundColor(isSuperSelected ? selectedColor : unselectedColor);
+        paytmCard.setCardBackgroundColor(isPaytmSelected ? selectedColor : unselectedColor);
+        phonepeCard.setCardBackgroundColor(isPhonepeSelected ? selectedColor : unselectedColor);
     }
 
     private void handleIntentData() {
@@ -113,7 +182,7 @@ public class AmountActivity extends AppCompatActivity {
 
     private void handlePayment() {
         String amount = amountEditText.getText().toString().replace(",", ""); // Get the amount without commas
-        if (TextUtils.isEmpty(amount) || Integer.parseInt(amount) <= 0) {
+        if (TextUtils.isEmpty(amount) || Double.parseDouble(amount) <= 0) {
             Toast.makeText(AmountActivity.this, "Please enter a valid amount greater than 0", Toast.LENGTH_SHORT).show();
             return; // Prevent navigation
         }
@@ -121,9 +190,16 @@ public class AmountActivity extends AppCompatActivity {
         // Proceed with the selected payment method
         if (isGpaySelected) {
             launchGPay(Integer.parseInt(amount));
-        }
-        if (isCredSelected) {
+        } else if (isCredSelected) {
             launchCred(Integer.parseInt(amount));
+        } else if (isNaviSelected) {
+            launchNavi(Integer.parseInt(amount));
+        } else if (isSuperSelected) {
+            launchSupermoney(Integer.parseInt(amount));
+        } else if (isPaytmSelected) {
+            launchPaytm(Integer.parseInt(amount));
+        } else if (isPhonepeSelected) {
+            launchPhonePe(Integer.parseInt(amount));
         }
     }
 
@@ -140,7 +216,7 @@ public class AmountActivity extends AppCompatActivity {
             String amount = s.toString().replaceAll(",", "").trim(); // Remove commas for processing
             if (!TextUtils.isEmpty(amount)) {
                 try {
-                    int enteredAmount = Integer.parseInt(amount);
+                    Integer enteredAmount = Integer.parseInt(amount);
                     if (enteredAmount > MAX_AMOUNT) {
                         Toast.makeText(AmountActivity.this, "You can't enter an amount more than ₹1,00,000", Toast.LENGTH_SHORT).show();
                         amountEditText.setText(current); // Reset to previous valid input
@@ -192,6 +268,22 @@ public class AmountActivity extends AppCompatActivity {
         launchPayment("com.dreamplug.androidapp", amount);
     }
 
+    private void launchNavi(int amount) {
+        launchPayment("com.naviapp", amount);
+    }
+
+    private void launchSupermoney(int amount) {
+        launchPayment("com.super.payments", amount);
+    }
+
+    private void launchPaytm(int amount) {
+        launchPayment("net.one97.paytm", amount);
+    }
+
+    private void launchPhonePe(int amount) {
+        launchPayment("com.phonepe.app", amount);
+    }
+
     private void launchPayment(String packageName, int amount) {
         String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() +
                 "&pn=" + payeeNameTextView.getText().toString() +
@@ -213,7 +305,8 @@ public class AmountActivity extends AppCompatActivity {
                 startActivity(chooser);
             }
         } else {
-            showDownloadDialog("App Not Installed", credPlayStoreLink);
+            String playStoreLink = getPlayStoreLink(packageName);
+            showDownloadDialog("App Not Installed", playStoreLink);
         }
     }
 
@@ -223,6 +316,23 @@ public class AmountActivity extends AppCompatActivity {
             return true; // App is installed
         } catch (PackageManager.NameNotFoundException e) {
             return false; // App is not installed
+        }
+    }
+
+    private String getPlayStoreLink(String packageName) {
+        switch (packageName) {
+            case "com.dreamplug.androidapp":
+                return credPlayStoreLink;
+            case "com.navi.android":
+                return naviPlayStoreLink;
+            case "com.super.payments":
+                return supermoneyPlayStoreLink;
+            case "net.one97.paytm":
+                return paytmPlayStoreLink;
+            case "com.phonepe.app":
+                return phonepePlayStoreLink;
+            default:
+                return "";
         }
     }
 
