@@ -46,7 +46,7 @@ public class AmountActivity extends AppCompatActivity {
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
     private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
     private String naviPlayStoreLink = "https://play.google.com/store/apps/details?id=com.navi.android"; // Navi Play Store link
-    private String supermoneyPlayStoreLink = "https://play.google.com/store/apps/details?id=com.supermoney.android"; // Supermoney Play Store link
+    private String supermoneyPlayStoreLink = "https://play.google.com/store/apps/details?id=money.super.payments&hl=en"; // Supermoney Play Store link
     private String paytmPlayStoreLink = "https://play.google.com/store/apps/details?id=net.one97.paytm"; // Paytm Play Store link
     private String phonepePlayStoreLink = "https://play.google.com/store/apps/details?id=com.phonepe.app"; // PhonePe Play Store link
 

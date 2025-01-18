@@ -22,7 +22,6 @@
         <package android:name="money.super.payments" />
         <package android:name="net.one97.paytm" />
         <package android:name="com.phonepe.app" />
-        <package android:name="com.naviapp" />
         <!-- Add other UPI app package names if needed -->
     </queries>
 
