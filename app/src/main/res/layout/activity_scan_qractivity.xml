@@ -7,33 +7,6 @@
     android:layout_height="match_parent"
     tools:context="com.example.qrcodescannner.ScanQRActivity">
 
-    <com.budiyev.android.codescanner.CodeScannerView
-        android:id="@+id/scanner_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:autoFocusButtonColor="@android:color/white"
-        app:autoFocusButtonVisible="true"
-        app:flashButtonColor="@android:color/white"
-        app:flashButtonVisible="true"
-        app:frameAspectRatioHeight="1"
-        app:frameAspectRatioWidth="1"
-        app:frameColor="@android:color/white"
-        app:frameCornersRadius="0dp"
-        app:frameCornersSize="50dp"
-        app:frameSize="0.75"
-        app:frameThickness="2dp"
-        app:frameVerticalBias="0.5"
-        app:maskColor="#77000000">
 
-
-        <Button
-            android:id="@+id/backbtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginStart="170dp"
-            android:text="Back"
-            android:textAlignment="center" />
-    </com.budiyev.android.codescanner.CodeScannerView>
 
 </RelativeLayout>

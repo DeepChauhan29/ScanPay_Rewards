@@ -22,7 +22,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.example.qrcodescanner.R;
+import com.example.qrcodescannner.R;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -45,6 +45,8 @@ public class AmountActivity extends AppCompatActivity {
     private boolean isPhonepeSelected = false;
 
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
+
+    // Play Store links
     private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
     private String naviPlayStoreLink = "https://play.google.com/store/apps/details?id=com.navi.android"; // Navi Play Store link
     private String supermoneyPlayStoreLink = "https://play.google.com/store/apps/details?id=money.super.payments&hl=en"; // Supermoney Play Store link
@@ -52,6 +54,11 @@ public class AmountActivity extends AppCompatActivity {
     private String phonepePlayStoreLink = "https://play.google.com/store/apps/details?id=com.phonepe.app"; // PhonePe Play Store link
 
     private boolean isFormatting; // Flag to prevent recursive calls
+
+    // Variables to hold dynamic values
+    private String merchantCode;
+    private String mode;
+    private String purpose;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -251,6 +258,9 @@ public class AmountActivity extends AppCompatActivity {
             Uri uri = Uri.parse(qrCodeData);
             String upiId = uri.getQueryParameter("pa");
             String payeeName = uri.getQueryParameter("pn");
+            merchantCode = uri.getQueryParameter("mc"); // Extract merchant code
+            mode = uri.getQueryParameter("mode"); // Extract mode
+            purpose = uri.getQueryParameter("purpose"); // Extract purpose
 
             // Set the extracted data to the TextViews
             upiIdTextView.setText(upiId != null ? upiId : "UPI ID not found");
@@ -262,7 +272,48 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private void launchGPay(int amount) {
-        launchPayment("com.google.android.apps.nbu.paisa.user", amount);
+        String gpayPackage = "com.google.android.apps.nbu.paisa.user";
+        String rawQrData = getIntent().getStringExtra("decoded_data");
+        
+        if (rawQrData != null && !rawQrData.isEmpty()) {
+            // Parse the original URI to preserve all parameters
+            Uri originalUri = Uri.parse(rawQrData);
+            String upiId = originalUri.getQueryParameter("pa");
+            String payeeName = originalUri.getQueryParameter("pn");
+            
+            // Build a new URI with minimal parameters for Google Pay
+            Uri.Builder uriBuilder = new Uri.Builder()
+                .scheme("upi")
+                .authority("pay")
+                .appendQueryParameter("pa", upiId)
+                .appendQueryParameter("pn", payeeName)
+                .appendQueryParameter("am", String.valueOf(amount))
+                .appendQueryParameter("cu", "INR");
+
+            // Add merchant code only if it exists in original QR
+            if (merchantCode != null) {
+                uriBuilder.appendQueryParameter("mc", merchantCode);
+            }
+
+            String uri = uriBuilder.build().toString();
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(uri));
+            intent.setPackage(gpayPackage);
+
+            try {
+                if (isAppInstalled(gpayPackage)) {
+                    startActivity(intent);
+                } else {
+                    showDownloadDialog("Google Pay Not Installed", 
+                        "https://play.google.com/store/apps/details?id=" + gpayPackage);
+                }
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(this, "Could not launch Google Pay", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            // If no QR data, fallback to regular payment method
+            launchPayment(gpayPackage, amount);
+        }
     }
 
     private void launchCred(int amount) {
@@ -286,28 +337,86 @@ public class AmountActivity extends AppCompatActivity {
     }
 
     private void launchPayment(String packageName, int amount) {
-        String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() +
-                "&pn=" + payeeNameTextView.getText().toString() +
-                "&am=" + amount +
-                "&cu=INR";
+        // Get the raw QR code data that was originally scanned
+        String rawQrData = getIntent().getStringExtra("decoded_data");
+        
+        if (rawQrData != null && !rawQrData.isEmpty()) {
+            // Only modify the amount in the original QR data
+            String baseUri = rawQrData;
+            if (baseUri.contains("am=")) {
+                // Replace existing amount
+                baseUri = baseUri.replaceAll("am=[^&]+", "am=" + amount);
+             Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(baseUri));
+            intent.setPackage(packageName);
+            
+            try {
+                if (isAppInstalled(packageName)) {
+                    startActivity(intent);
+                } else {
+                    String playStoreLink = getPlayStoreLink(packageName);
+                    showDownloadDialog("App Not Installed", playStoreLink);
+                }
+            } catch (ActivityNotFoundException e) {
+                Toast.makeText(this, "Google Pay app is not installed", Toast.LENGTH_SHORT).show();
+                String playStoreLink = "https://play.google.com/store/apps/details?id=" + gpayPackage;
+                showDownloadDialog("Google Pay Not Installed", playStoreLink);
+            }
+            return;
+        }
 
+        // Fallback to manual URI construction if no raw data available
+        String upiId = upiIdTextView.getText().toString().trim();
+        String payeeName = payeeNameTextView.getText().toString().trim();
+
+        if (TextUtils.isEmpty(upiId) || TextUtils.isEmpty(payeeName)) {
+            Toast.makeText(this, "UPI ID and Payee Name cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Uri.Builder uriBuilder = new Uri.Builder()
+            .scheme("upi")
+            .authority("pay")
+            .appendQueryParameter("pa", upiId)
+            .appendQueryParameter("pn", payeeName)
+            .appendQueryParameter("am", String.valueOf(amount))
+            .appendQueryParameter("cu", "INR")
+            .appendQueryParameter("tr", "TXN" + System.currentTimeMillis());
+upi")
+            .authority("pay")
+            .appendQueryParameter("pa", upiId)
+            .appendQueryParameter("pn", payeeName)
+            .appendQueryParameter("am", String.valueOf(amount))
+            .appendQueryParameter("cu", "INR")
+            .appendQueryParameter("tr", "TXN" + System.currentTimeMillis())
+            .appendQueryParameter("mv", "1.0"); // Add minimum version
+
+        if (!TextUtils.isEmpty(merchantCode)) {
+            uriBuilder.appendQueryParameter("mc", merchantCode);
+        }
+        if (!TextUtils.isEmpty(mode)) {
+            uriBuilder.appendQueryParameter("mode", mode);
+        }
+        if (!TextUtils.isEmpty(purpose)) {
+            uriBuilder.appendQueryParameter("purpose", purpose);
+        }
+
+        String uri = uriBuilder.build().toString();
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse(uri));
-        intent.setPackage(packageName); // Set the package name
+        intent.setPackage(packageName);
 
-        // Check if the app is installed
-        if (isAppInstalled(packageName)) {
-            try {
+        try {
+            if (isAppInstalled(packageName)) {
                 startActivity(intent);
-            } catch (ActivityNotFoundException e) {
-                Toast.makeText(this, "No application found to handle this payment", Toast.LENGTH_SHORT).show();
-                // Optionally, you can show a chooser for available UPI apps
-                Intent chooser = Intent.createChooser(intent, "Pay with");
-                startActivity(chooser);
+            } else {
+                String playStoreLink = getPlayStoreLink(packageName);
+                showDownloadDialog("App Not Installed", playStoreLink);
             }
-        } else {
-            String playStoreLink = getPlayStoreLink(packageName);
-            showDownloadDialog("App Not Installed", playStoreLink);
+        } catch (ActivityNotFoundException e) {
+            Toast.makeText(this, "Could not launch payment app", Toast.LENGTH_SHORT).show();
+            Intent chooser = Intent.createChooser(intent, "Pay with");
+            startActivity(chooser);
         }
     }
 

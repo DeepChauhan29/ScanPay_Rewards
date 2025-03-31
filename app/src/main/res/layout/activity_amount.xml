@@ -67,25 +67,32 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+
             <androidx.cardview.widget.CardView
+                android:id="@+id/gpaycard"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:id="@+id/gpaycard"
                 android:layout_below="@+id/amount"
-                android:layout_marginTop="20dp"
                 android:layout_marginStart="20dp"
-                android:layout_marginEnd="20dp"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_marginTop="20dp">
 
                 <RadioButton
                     android:id="@+id/gpayRadioButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:button="@null"
+                    android:layout_margin="8dp"
                     android:background="@drawable/gpaylogo"
-                    android:padding="16dp"
-                    android:layout_margin="8dp" />
+                    android:button="@null"
+                    android:padding="16dp" />
+
+                <TextView
+                    android:id="@+id/cashbackTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Cashback"
+                    android:textColor="@color/green"
+                    android:textSize="14sp" />
 
             </androidx.cardview.widget.CardView>
 

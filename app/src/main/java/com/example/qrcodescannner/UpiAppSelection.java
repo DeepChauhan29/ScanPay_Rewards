@@ -15,7 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.content.ContextCompat;
 
-import com.example.qrcodescanner.R;
+import com.example.qrcodescannner.R;
 
 public class UpiAppSelection extends AppCompatActivity {
 
