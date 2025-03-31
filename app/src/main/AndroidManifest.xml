@@ -37,20 +37,17 @@
         android:theme="@style/Theme.QRCodeScannner"
         tools:targetApi="31">
         <activity
-            android:name="com.example.qrcodescannner.UpiAppSelection"
-            android:exported="false" />
-        <activity
-            android:name="com.example.qrcodescannner.AmountActivity"
+            android:name=".AmountActivity"
             android:exported="false"
             android:windowSoftInputMode="stateVisible|adjustResize" />
         <activity
-            android:name="com.example.qrcodescannner.ScanQRActivity"
+            android:name=".ScanQRActivity"
             android:exported="false" />
         <activity
-            android:name="com.example.qrcodescannner.HomeActivity"
+            android:name=".HomeActivity"
             android:exported="false" />
         <activity
-            android:name="com.example.qrcodescannner.MainActivity"
+            android:name=".MainActivity"
             android:exported="false" />
         <activity 
             android:name=".LoginActivity"
@@ -64,13 +61,7 @@
             android:name=".SignupActivity"
             android:exported="false" />
         <activity
-            android:name=".HomeActivity"
-            android:exported="false" />
-        <activity
             android:name=".ProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AmountActivity"
             android:exported="false" />
     </application>
 
