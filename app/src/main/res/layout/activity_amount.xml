@@ -74,7 +74,8 @@
                 android:layout_height="150dp"
                 android:layout_below="@+id/amount"
                 android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp">
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp">
 
                 <RadioButton
                     android:id="@+id/gpayRadioButton"
@@ -86,20 +87,22 @@
                     android:padding="16dp" />
 
                 <TextView
-                    android:id="@+id/cashbackTextView"
+                    android:id="@+id/gpayCashback"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="50dp"
-                    android:text="Cashback"
-                    android:textColor="@color/green"
-                    android:textSize="14sp" />
+                    android:text="Up to ₹2"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
 
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/credcard"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:id="@+id/credcard"
                 android:layout_marginTop="20dp"
                 android:layout_below="@+id/amount"
                 android:layout_toEndOf="@id/gpaycard"
@@ -116,12 +119,23 @@
                     android:padding="16dp"
                     android:layout_margin="8dp" />
 
+                <TextView
+                    android:id="@+id/credCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/navicard"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:id="@+id/navicard"
                 android:layout_marginTop="20dp"
                 android:layout_below="@+id/amount"
                 android:layout_toEndOf="@id/gpaycard"
@@ -138,12 +152,23 @@
                     android:padding="16dp"
                     android:layout_margin="8dp" />
 
+                <TextView
+                    android:id="@+id/naviCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹2"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/supermoneycard"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:id="@+id/supermoneycard"
                 android:layout_marginTop="20dp"
                 android:layout_below="@+id/amount"
                 android:layout_toEndOf="@id/gpaycard"
@@ -160,12 +185,23 @@
                     android:padding="16dp"
                     android:layout_margin="8dp" />
 
+                <TextView
+                    android:id="@+id/superCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/paytmcard"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:id="@+id/paytmcard"
                 android:layout_marginTop="20dp"
                 android:layout_below="@+id/amount"
                 android:layout_toEndOf="@id/gpaycard"
@@ -182,12 +218,23 @@
                     android:padding="16dp"
                     android:layout_margin="8dp" />
 
+                <TextView
+                    android:id="@+id/paytmCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/phonepecard"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:id="@+id/phonepecard"
                 android:layout_marginTop="20dp"
                 android:layout_below="@+id/amount"
                 android:layout_toEndOf="@id/gpaycard"
@@ -204,25 +251,34 @@
                     android:padding="16dp"
                     android:layout_margin="8dp" />
 
+                <TextView
+                    android:id="@+id/phonepeCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
 
     </HorizontalScrollView>
 
-
     <Button
+        android:id="@+id/payButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/scrollView"
         android:layout_marginTop="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:id="@+id/payButton"
-        android:textSize="20sp"
         android:text="Pay ₹"
+        android:textSize="20sp"
         tools:ignore="HardcodedText" />
-
 
     <Button
         android:id="@+id/bk"
