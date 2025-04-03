@@ -1,13 +1,13 @@
 plugins {
-    alias(libs.plugins.android.application)
+    "com.android.application"
 }
 
 android {
-    namespace = "com.example.qrcodescanner"
+    namespace = "com.example.qrcodescannner"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.qrcodescanner"
+        applicationId = "com.example.qrcodescannner"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -37,32 +37,18 @@ android {
 }
 
 dependencies {
-    // Core AndroidX libraries
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
-
-    // Barcode scanning library
-    implementation("com.google.mlkit:barcode-scanning:17.3.0")
-
-    // Additional libraries
-    implementation("androidx.appcompat:appcompat:1.2.0")
-    implementation("androidx.recyclerview:recyclerview:1.1.0")
-    implementation("androidx.cardview:cardview:1.0.0") // CardView dependency
-    implementation("androidx.camera:camera-core:1.0.0")
-    implementation("androidx.camera:camera-camera2:1.2.0") // Updated version
-    implementation("androidx.camera:camera-lifecycle:1.2.0") // Updated version
-    implementation("androidx.camera:camera-view:1.2.0") // Updated version
-
-    // QR code scanner library
-    implementation("com.github.yuriy-budiyev:code-scanner:2.3.0")
-
-    // Example custom library
-    implementation(libs.engage.core) // Ensure this alias is correctly set in your libs.versions.toml
-
-    // Testing libraries
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.2")
+    implementation("androidx.camera:camera-camera2:1.3.2")
+    implementation("androidx.camera:camera-lifecycle:1.3.2")
+    implementation("androidx.camera:camera-view:1.3.2")
+    
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

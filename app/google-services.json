@@ -1,26 +1,36 @@
 {
   "project_info": {
-    "project_number": "YOUR_PROJECT_NUMBER",
-    "project_id": "qrcodescanner-app",
-    "storage_bucket": "qrcodescanner-app.appspot.com"
+    "project_number": "191978806464",
+    "project_id": "cashback-analyse",
+    "storage_bucket": "cashback-analyse.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:YOUR_PROJECT_NUMBER:android:YOUR_APP_ID",
+        "mobilesdk_app_id": "1:191978806464:android:04d15419a74edb5043a125",
         "android_client_info": {
           "package_name": "com.example.qrcodescannner"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "191978806464-q326ipqdtrvs0008k3kotqnkmht7djet.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "YOUR_API_KEY"
+          "current_key": "AIzaSyCJ7MpXLf3LIyPdJc7IqSRm2sYg7ZE_h5k"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "191978806464-q326ipqdtrvs0008k3kotqnkmht7djet.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -9,6 +9,8 @@ activity = "1.9.3"
 constraintlayout = "2.2.0"
 engageCore = "1.5.5"
 barcodeScanningCommon = "17.0.0"
+googleGmsGoogleServices = "4.4.2"
+firebaseAuth = "23.2.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -20,7 +22,9 @@ activity = { group = "androidx.activity", name = "activity", version.ref = "acti
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 engage-core = { group = "com.google.android.engage", name = "engage-core", version.ref = "engageCore" }
 barcode-scanning-common = { group = "com.google.mlkit", name = "barcode-scanning-common", version.ref = "barcodeScanningCommon" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 

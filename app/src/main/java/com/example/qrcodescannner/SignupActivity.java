@@ -2,54 +2,95 @@ package com.example.qrcodescannner;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SignupActivity extends AppCompatActivity {
     private EditText usernameEditText, emailEditText, passwordEditText;
     private Button signupButton;
+    private ProgressBar progressBar;
     private TextView loginLink;
-    private DatabaseHelper databaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        databaseHelper = new DatabaseHelper(this);
+        // Initialize views
         usernameEditText = findViewById(R.id.usernameEditText);
         emailEditText = findViewById(R.id.emailEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         signupButton = findViewById(R.id.signupButton);
+        progressBar = findViewById(R.id.progressBar);
         loginLink = findViewById(R.id.loginLink);
 
-        signupButton.setOnClickListener(v -> {
-            String username = usernameEditText.getText().toString().trim();
-            String email = emailEditText.getText().toString().trim();
-            String password = passwordEditText.getText().toString().trim();
+        // Set click listeners
+        signupButton.setOnClickListener(v -> signupUser());
+        loginLink.setOnClickListener(v -> {
+            Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        });
+    }
 
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(SignupActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-                return;
-            }
+    private void signupUser() {
+        String username = usernameEditText.getText().toString().trim();
+        String email = emailEditText.getText().toString().trim();
+        String password = passwordEditText.getText().toString().trim();
 
-            if (databaseHelper.checkEmail(email)) {
-                Toast.makeText(SignupActivity.this, "Email already exists", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        // Validate input
+        if (TextUtils.isEmpty(username)) {
+            usernameEditText.setError("Username is required");
+            return;
+        }
 
-            if (databaseHelper.addUser(username, email, password)) {
+        if (TextUtils.isEmpty(email)) {
+            emailEditText.setError("Email is required");
+            return;
+        }
+
+        if (TextUtils.isEmpty(password)) {
+            passwordEditText.setError("Password is required");
+            return;
+        }
+
+        if (password.length() < 6) {
+            passwordEditText.setError("Password must be at least 6 characters");
+            return;
+        }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailEditText.setError("Please enter a valid email address");
+            return;
+        }
+
+        // Show progress bar
+        progressBar.setVisibility(View.VISIBLE);
+        signupButton.setEnabled(false);
+
+        // Simulate signup process
+        new android.os.Handler().postDelayed(() -> {
+            // For demo purposes, accept any valid input
+            if (!username.isEmpty() && !email.isEmpty() && password.length() >= 6) {
+                // Signup successful
                 Toast.makeText(SignupActivity.this, "Signup successful", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                startActivity(intent);
                 finish();
             } else {
-                Toast.makeText(SignupActivity.this, "Signup failed", Toast.LENGTH_SHORT).show();
+                // Signup failed
+                Toast.makeText(SignupActivity.this, "Signup failed. Please try again.", Toast.LENGTH_SHORT).show();
             }
-        });
 
-        loginLink.setOnClickListener(v -> finish());
+            // Hide progress bar and enable signup button
+            progressBar.setVisibility(View.GONE);
+            signupButton.setEnabled(true);
+        }, 1500); // Simulate network delay
     }
 }
