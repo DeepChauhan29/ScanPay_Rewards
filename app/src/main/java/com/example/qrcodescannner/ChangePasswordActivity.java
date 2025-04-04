@@ -3,6 +3,7 @@ package com.example.qrcodescannner;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -10,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class ChangePasswordActivity extends AppCompatActivity {
+    private static final String TAG = "ChangePasswordActivity";
     private EditText currentPasswordEditText;
     private EditText newPasswordEditText;
     private EditText confirmPasswordEditText;
@@ -31,12 +33,16 @@ public class ChangePasswordActivity extends AppCompatActivity {
 
         // Get current user email from SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
-        String userEmail = sharedPreferences.getString("userEmail", "");
+        String userEmail = sharedPreferences.getString("email", "");
+        
+        Log.d(TAG, "Current user email: " + userEmail);
 
         changePasswordButton.setOnClickListener(v -> {
             String currentPassword = currentPasswordEditText.getText().toString().trim();
             String newPassword = newPasswordEditText.getText().toString().trim();
             String confirmPassword = confirmPasswordEditText.getText().toString().trim();
+
+            Log.d(TAG, "Attempting to change password for email: " + userEmail);
 
             // Validate input
             if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
@@ -50,7 +56,10 @@ public class ChangePasswordActivity extends AppCompatActivity {
             }
 
             // Verify current password
-            if (databaseHelper.checkPassword(userEmail, currentPassword)) {
+            boolean isPasswordCorrect = databaseHelper.checkPassword(userEmail, currentPassword);
+            Log.d(TAG, "Password verification result: " + isPasswordCorrect);
+            
+            if (isPasswordCorrect) {
                 // Update password
                 if (databaseHelper.updatePassword(userEmail, newPassword)) {
                     Toast.makeText(this, "Password changed successfully", Toast.LENGTH_SHORT).show();

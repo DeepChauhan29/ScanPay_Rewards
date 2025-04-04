@@ -1,6 +1,7 @@
 package com.example.qrcodescannner;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -66,8 +67,15 @@ public class HomeActivity extends AppCompatActivity {
     private ProcessCameraProvider cameraProvider;
     private Preview preview;
     private ImageAnalysis imageAnalysis;
-    private static final String[] REQUIRED_PERMISSIONS = new String[]{Manifest.permission.CAMERA};
+    private static final String[] REQUIRED_PERMISSIONS = new String[]{
+        Manifest.permission.CAMERA,
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+    
+    // Add new constant for Android 13+ media permission
+    private static final String READ_MEDIA_IMAGES_PERMISSION = Manifest.permission.READ_MEDIA_IMAGES;
     private static final int REQUEST_CODE_PERMISSIONS = 1;
+    private ActivityResultLauncher<Intent> galleryLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +83,32 @@ public class HomeActivity extends AppCompatActivity {
         
         // Verify login state
         SharedPreferences sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
-        if (!sharedPreferences.getBoolean("isLoggedIn", false)) {
+        String storedEmail = sharedPreferences.getString("email", "");
+        
+        if (!sharedPreferences.getBoolean("isLoggedIn", false) || storedEmail.isEmpty()) {
             // User is not logged in, redirect to LoginActivity
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+        
+        // Verify if user exists in database and is verified
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        if (!databaseHelper.checkEmail(storedEmail)) {
+            // User doesn't exist in database, clear login state and redirect to login
+            sharedPreferences.edit().clear().apply();
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
+            return;
+        }
+        
+        if (!databaseHelper.isEmailVerified(storedEmail)) {
+            // User is not verified, clear login state and redirect to login
+            sharedPreferences.edit().clear().apply();
             Intent intent = new Intent(this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
@@ -92,6 +124,20 @@ public class HomeActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Initialize gallery launcher
+        galleryLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    if (data != null) {
+                        Uri selectedImageUri = data.getData();
+                        processQRCodeFromGallery(selectedImageUri);
+                    }
+                }
+            }
+        );
 
         // Initialize upload button
         Button uploadButton = findViewById(R.id.gallery);
@@ -414,26 +460,55 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private boolean allPermissionsGranted() {
-        for (String permission : REQUIRED_PERMISSIONS) {
-            if (ContextCompat.checkSelfPermission(getBaseContext(), permission) != PackageManager.PERMISSION_GRANTED) {
-                return false;
-            }
+        // Always check camera permission
+        if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.CAMERA) 
+                != PackageManager.PERMISSION_GRANTED) {
+            return false;
         }
-        return true;
+        
+        // Check appropriate storage permission based on Android version
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 and above - use READ_MEDIA_IMAGES
+            return ContextCompat.checkSelfPermission(getBaseContext(), READ_MEDIA_IMAGES_PERMISSION) 
+                    == PackageManager.PERMISSION_GRANTED;
+        } else {
+            // Android 12 and below - use READ_EXTERNAL_STORAGE
+            return ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.READ_EXTERNAL_STORAGE) 
+                    == PackageManager.PERMISSION_GRANTED;
+        }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                         @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted()) {
-                startCamera();
-            } else {
-                Toast.makeText(this,
-                    "Permissions not granted by the user.",
-                    Toast.LENGTH_SHORT).show();
-                finish();
+            if (permissions.length > 0) {
+                String permission = permissions[0];
+                if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE) || 
+                    permission.equals(READ_MEDIA_IMAGES_PERMISSION)) {
+                    // This was a storage permission request
+                    if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        // Storage permission granted, open gallery
+                        openGallery();
+                    } else {
+                        Toast.makeText(this, "Storage permission is required to access gallery", Toast.LENGTH_SHORT).show();
+                    }
+                } else if (permission.equals(Manifest.permission.CAMERA)) {
+                    // This was a camera permission request
+                    boolean allGranted = true;
+                    for (int result : grantResults) {
+                        if (result != PackageManager.PERMISSION_GRANTED) {
+                            allGranted = false;
+                            break;
+                        }
+                    }
+                    
+                    if (allGranted) {
+                        startCamera();
+                    } else {
+                        Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
         }
     }
@@ -470,7 +545,59 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void openGallery() {
-        // Implementation of openGallery method
+        // Check for appropriate permission based on Android version
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 and above - use READ_MEDIA_IMAGES
+            if (ContextCompat.checkSelfPermission(this, READ_MEDIA_IMAGES_PERMISSION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, 
+                    new String[]{READ_MEDIA_IMAGES_PERMISSION}, 
+                    REQUEST_CODE_PERMISSIONS);
+                return;
+            }
+        } else {
+            // Android 12 and below - use READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, 
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 
+                    REQUEST_CODE_PERMISSIONS);
+                return;
+            }
+        }
+
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intent.setType("image/*");
+        galleryLauncher.launch(intent);
+    }
+
+    private void processQRCodeFromGallery(Uri imageUri) {
+        try {
+            InputImage image = InputImage.fromFilePath(this, imageUri);
+            barcodeScanner.process(image)
+                .addOnSuccessListener(barcodes -> {
+                    if (barcodes.isEmpty()) {
+                        Toast.makeText(this, "No QR code found in the image", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    
+                    for (Barcode barcode : barcodes) {
+                        if (barcode.getValueType() == Barcode.TYPE_TEXT) {
+                            String rawValue = barcode.getRawValue();
+                            if (rawValue != null) {
+                                parseUPIData(rawValue);
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error processing QR code from gallery", e);
+                    Toast.makeText(this, "Error processing QR code", Toast.LENGTH_SHORT).show();
+                });
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading image from gallery", e);
+            Toast.makeText(this, "Error loading image", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

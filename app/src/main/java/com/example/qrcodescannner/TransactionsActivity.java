@@ -136,6 +136,19 @@ public class TransactionsActivity extends AppCompatActivity {
                         }
                         v.setTypeface(v.getTypeface(), android.graphics.Typeface.ITALIC);
                     }
+                    else if (id == R.id.transaction_status) {
+                        // Set background color based on status
+                        Log.d("TransactionsActivity", "Setting status: " + text);
+                        if (text != null) {
+                            if (text.equalsIgnoreCase("completed")) {
+                                v.setBackgroundResource(R.drawable.status_background_completed);
+                            } else if (text.equalsIgnoreCase("failed")) {
+                                v.setBackgroundResource(R.drawable.status_background_failed);
+                            } else {
+                                v.setBackgroundResource(R.drawable.status_background);
+                            }
+                        }
+                    }
                     
                     // Set the text after formatting
                     super.setViewText(v, text);

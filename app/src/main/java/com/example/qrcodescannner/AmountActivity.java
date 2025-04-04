@@ -707,71 +707,34 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                     if (transactionId > 0) {
                         Log.d("AmountActivity", "Transaction recorded successfully. ID: " + transactionId);
                         
-                        // Show success message
-                        Toast.makeText(AmountActivity.this, 
-                                "Payment of ₹" + amount + " recorded successfully!", 
-                                Toast.LENGTH_SHORT).show();
-                                
-                        // Update app priority for future recommendations
-                        databaseHelper.updateAppPriority(selectedApp);
-                        Log.d("AmountActivity", "Updated app priority for: " + selectedApp);
-
-                        // Close the current database connection
-                        databaseHelper.close();
-                        Log.d("AmountActivity", "Closed database connection");
-                        
-                        // Create a new database connection
-                        databaseHelper = new DatabaseHelper(AmountActivity.this);
-                        Log.d("AmountActivity", "Created new database connection");
-                        
-                        // Wait a moment to ensure database changes are committed
-                        new android.os.Handler().postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                // Update the UI on the main thread
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            // Synchronize UI updates
-                                            synchronized (AmountActivity.this) {
-                                                Log.d("AmountActivity", "Starting UI updates");
-                                                
-                                                // Update app positions and buttons
-                                                updateAppPositionsBasedOnTransactions();
-                                                Log.d("AmountActivity", "Updated app positions");
-                                                
-                                                setupAppButtons();
-                                                Log.d("AmountActivity", "Setup app buttons");
-                                                
-                                                // Force a UI refresh
-                                                invalidateOptionsMenu();
-                                                Log.d("AmountActivity", "Invalidated options menu");
-                                                
-                                                // Return to previous screen
-                                                finish();
-                                                Log.d("AmountActivity", "Activity finished");
-                                            }
-        } catch (Exception e) {
-                                            Log.e("AmountActivity", "Error updating UI: " + e.getMessage(), e);
-                                            finish(); // Still finish the activity even if UI update fails
-                                        }
-                                    }
-                                });
-                            }
-                        }, 500); // Wait 500ms to ensure database changes are committed
+                        // Launch TransactionResultActivity with success state
+                        Intent resultIntent = new Intent(AmountActivity.this, TransactionResultActivity.class);
+                        resultIntent.putExtra(TransactionResultActivity.EXTRA_SUCCESS, true);
+                        resultIntent.putExtra(TransactionResultActivity.EXTRA_AMOUNT, String.valueOf(amount));
+                        resultIntent.putExtra(TransactionResultActivity.EXTRA_APP_NAME, appName);
+                        if (cashbackAmount > 0) {
+                            resultIntent.putExtra(TransactionResultActivity.EXTRA_CASHBACK, String.valueOf(cashbackAmount));
+                        }
+                        startActivity(resultIntent);
+                        finish();
                         
                     } else {
                         Log.e("AmountActivity", "Failed to record transaction");
-                        Toast.makeText(AmountActivity.this, 
-                                "Payment recorded, but transaction details could not be saved.", 
-                                Toast.LENGTH_SHORT).show();
+                        // Launch TransactionResultActivity with failure state
+                        Intent resultIntent = new Intent(AmountActivity.this, TransactionResultActivity.class);
+                        resultIntent.putExtra(TransactionResultActivity.EXTRA_SUCCESS, false);
+                        resultIntent.putExtra(TransactionResultActivity.EXTRA_MESSAGE, "Failed to record transaction details");
+                        startActivity(resultIntent);
+                        finish();
                     }
                 } catch (Exception e) {
                     Log.e("AmountActivity", "Error recording transaction: " + e.getMessage(), e);
-                    Toast.makeText(AmountActivity.this, 
-                            "Error recording transaction: " + e.getMessage(), 
-                            Toast.LENGTH_SHORT).show();
+                    // Launch TransactionResultActivity with failure state
+                    Intent resultIntent = new Intent(AmountActivity.this, TransactionResultActivity.class);
+                    resultIntent.putExtra(TransactionResultActivity.EXTRA_SUCCESS, false);
+                    resultIntent.putExtra(TransactionResultActivity.EXTRA_MESSAGE, "Error: " + e.getMessage());
+                    startActivity(resultIntent);
+                    finish();
                 }
             }
         });
@@ -779,7 +742,42 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
         builder.setNegativeButton("No, Failed", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Toast.makeText(AmountActivity.this, "Payment was not completed. Please try again.", Toast.LENGTH_SHORT).show();
+                // Get current user ID from SharedPreferences
+                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                String userId = prefs.getString("userId", "user123");
+                
+                // Get current timestamp in ISO format for consistent storage
+                String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                
+                try {
+                    Log.d("AmountActivity", "Recording failed transaction - Amount: ₹" + amount + 
+                            ", App: " + selectedApp + ", Timestamp: " + timestamp);
+                    
+                    // Record the failed transaction in the database
+                    long transactionId = databaseHelper.addTransaction(
+                            userId,             // user ID
+                            amount,             // payment amount
+                            selectedApp,        // app package name
+                            0,                  // no cashback for failed transactions
+                            "failed"            // transaction status
+                    );
+                    
+                    if (transactionId > 0) {
+                        Log.d("AmountActivity", "Failed transaction recorded successfully. ID: " + transactionId);
+                    } else {
+                        Log.e("AmountActivity", "Failed to record failed transaction");
+                    }
+                } catch (Exception e) {
+                    Log.e("AmountActivity", "Error recording failed transaction: " + e.getMessage(), e);
+                }
+                
+                // Launch TransactionResultActivity with failure state
+                Intent resultIntent = new Intent(AmountActivity.this, TransactionResultActivity.class);
+                resultIntent.putExtra(TransactionResultActivity.EXTRA_SUCCESS, false);
+                resultIntent.putExtra(TransactionResultActivity.EXTRA_MESSAGE, "Payment was not completed");
+                startActivity(resultIntent);
+                finish();
             }
         });
         
@@ -1117,14 +1115,14 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
 
             if (gpayCount < 1) {
                 availableCards.add(gpayCard);
-            } else {
+                    } else {
                 limitReachedCards.add(gpayCard);
                 updateCashbackText(gpayCard, "Daily limit reached");
-            }
+                    }
 
             if (superCount < 1) {
                 availableCards.add(supermoneyCard);
-            } else {
+                } else {
                 limitReachedCards.add(supermoneyCard);
                 updateCashbackText(supermoneyCard, "Daily limit reached");
             }

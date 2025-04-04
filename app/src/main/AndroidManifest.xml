@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <uses-feature
         android:name="android.hardware.camera.any"
@@ -38,6 +41,10 @@
         android:theme="@style/Theme.QRCodeScannner"
         tools:targetApi="31">
         <activity
+            android:name=".TransactionResultActivity"
+            android:exported="false"
+            android:theme="@style/Theme.QRCodeScanner" />
+        <activity
             android:name=".AmountActivity"
             android:exported="false"
             android:windowSoftInputMode="stateVisible|adjustResize" />
@@ -60,7 +67,12 @@
         </activity>
         <activity 
             android:name=".SignupActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.QRCodeScanner" />
+        <activity
+            android:name=".OTPVerificationActivity"
+            android:exported="false"
+            android:theme="@style/Theme.QRCodeScanner" />
         <activity
             android:name=".ProfileActivity"
             android:exported="false"

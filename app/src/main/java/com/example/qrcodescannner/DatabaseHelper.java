@@ -70,60 +70,55 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_OTP, otp);
-        values.put(COLUMN_OTP_TIMESTAMP, System.currentTimeMillis());
         
-        String whereClause = COLUMN_EMAIL + "=?";
-        String[] whereArgs = {email};
-        int result = db.update(TABLE_USERS, values, whereClause, whereArgs);
-        return result > 0;
+        int rowsAffected = db.update(TABLE_USERS, values, COLUMN_EMAIL + "=?", new String[]{email});
+        return rowsAffected > 0;
     }
 
     public boolean verifyOTP(String email, String otp) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {COLUMN_OTP, COLUMN_OTP_TIMESTAMP};
-        String selection = COLUMN_EMAIL + "=?";
-        String[] selectionArgs = {email};
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_OTP}, 
+            COLUMN_EMAIL + "=?", new String[]{email}, null, null, null);
         
-        Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
-        
-        if (cursor.moveToFirst()) {
-            String savedOTP = cursor.getString(cursor.getColumnIndex(COLUMN_OTP));
-            long timestamp = cursor.getLong(cursor.getColumnIndex(COLUMN_OTP_TIMESTAMP));
+        if (cursor != null && cursor.moveToFirst()) {
+            String storedOTP = cursor.getString(cursor.getColumnIndex(COLUMN_OTP));
             cursor.close();
             
-            // Check if OTP is not expired (valid for 5 minutes)
-            long currentTime = System.currentTimeMillis();
-            boolean isValid = savedOTP != null && 
-                            savedOTP.equals(otp) && 
-                            (currentTime - timestamp) <= 300000; // 5 minutes in milliseconds
-            
-            if (isValid) {
-                // Mark user as verified
+            if (otp.equals(storedOTP)) {
+                // OTP verified, update user as verified
                 ContentValues values = new ContentValues();
                 values.put(COLUMN_IS_VERIFIED, 1);
-                values.put(COLUMN_OTP, ""); // Clear OTP after verification
-                db.update(TABLE_USERS, values, selection, selectionArgs);
+                db.update(TABLE_USERS, values, COLUMN_EMAIL + "=?", new String[]{email});
+                return true;
             }
-            
-            return isValid;
         }
         return false;
     }
 
     public boolean isEmailVerified(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {COLUMN_IS_VERIFIED};
-        String selection = COLUMN_EMAIL + "=?";
-        String[] selectionArgs = {email};
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_IS_VERIFIED}, 
+            COLUMN_EMAIL + "=?", new String[]{email}, null, null, null);
         
-        Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
-        
-        if (cursor.moveToFirst()) {
+        if (cursor != null && cursor.moveToFirst()) {
             int isVerified = cursor.getInt(cursor.getColumnIndex(COLUMN_IS_VERIFIED));
             cursor.close();
             return isVerified == 1;
         }
         return false;
+    }
+
+    public String getOTP(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_OTP}, 
+            COLUMN_EMAIL + "=?", new String[]{email}, null, null, null);
+        
+        if (cursor != null && cursor.moveToFirst()) {
+            String otp = cursor.getString(cursor.getColumnIndex(COLUMN_OTP));
+            cursor.close();
+            return otp;
+        }
+        return null;
     }
 
     @Override
@@ -133,14 +128,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public boolean addUser(String username, String email, String password) {
+    public boolean addUser(String username, String email, String password, String otp) {
         SQLiteDatabase db = this.getWritableDatabase();
+        
+        // First check if user exists
+        if (checkEmail(email)) {
+            return false;
+        }
+        
         ContentValues values = new ContentValues();
         values.put(COLUMN_USERNAME, username);
         values.put(COLUMN_EMAIL, email);
-        values.put(COLUMN_PASSWORD, password);
-        long result = db.insert(TABLE_USERS, null, values);
-        return result != -1;
+        values.put(COLUMN_PASSWORD, hashPassword(password));
+        values.put(COLUMN_IS_VERIFIED, 0); // User starts as unverified
+        values.put(COLUMN_OTP, otp); // Save the OTP
+
+        try {
+            long result = db.insert(TABLE_USERS, null, values);
+            return result != -1;
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error adding user: " + e.getMessage());
+            return false;
+        }
     }
 
     public boolean checkUser(String email, String password) {
@@ -156,35 +165,67 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public boolean checkEmail(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {COLUMN_ID};
+        String[] columns = {COLUMN_EMAIL};
         String selection = COLUMN_EMAIL + "=?";
         String[] selectionArgs = {email};
+        
         Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
-        int count = cursor.getCount();
+        boolean exists = cursor.getCount() > 0;
         cursor.close();
-        return count > 0;
+        
+        return exists;
     }
 
     public boolean checkPassword(String email, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] columns = {COLUMN_ID};
+        String hashedPassword = hashPassword(password);
+        Log.d("DatabaseHelper", "Checking password for email: " + email);
+        Log.d("DatabaseHelper", "Hashed input password: " + hashedPassword);
+        
         String selection = COLUMN_EMAIL + "=? AND " + COLUMN_PASSWORD + "=?";
-        String[] selectionArgs = {email, password};
+        String[] selectionArgs = {email, hashedPassword};
         Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
         boolean exists = cursor.getCount() > 0;
         cursor.close();
+        
+        Log.d("DatabaseHelper", "Password check result: " + exists);
         return exists;
     }
 
     public boolean updatePassword(String email, String newPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_PASSWORD, newPassword);
+        values.put(COLUMN_PASSWORD, hashPassword(newPassword));
         
         String whereClause = COLUMN_EMAIL + "=?";
         String[] whereArgs = {email};
         int result = db.update(TABLE_USERS, values, whereClause, whereArgs);
+        
+        Log.d("DatabaseHelper", "Password update result: " + (result > 0));
         return result > 0;
+    }
+
+    private String hashPassword(String password) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            StringBuilder hexString = new StringBuilder();
+            
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            
+            String hashedPassword = hexString.toString();
+            Log.d("DatabaseHelper", "Password hashed successfully");
+            return hashedPassword;
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error hashing password: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
 
     // Add methods for transaction tracking
@@ -420,14 +461,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         // Keep the original date string if parsing fails
                     }
                     
+                    // Convert package name to readable app name
+                    String readableAppName = getReadableAppName(appName);
+                    
                     // Log formatted data
                     Log.d("DatabaseHelper", "Formatted transaction - Amount: " + formattedAmount + 
+                           ", App: " + readableAppName + 
                            ", Date: " + formattedDate);
                     
                     // Add all data to the transaction map
                     transaction.put("id", String.valueOf(id));
                     transaction.put("amount", formattedAmount);
-                    transaction.put("app_name", appName);
+                    transaction.put("app_name", readableAppName);
                     transaction.put("date", formattedDate);
                     transaction.put("status", status);
                     transaction.put("cashback", "₹" + cashback);
@@ -499,5 +544,113 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         
         return success;
+    }
+
+    public boolean verifyUser(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_PASSWORD, COLUMN_IS_VERIFIED};
+        String selection = COLUMN_EMAIL + "=?";
+        String[] selectionArgs = {email};
+        
+        Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
+        
+        if (cursor.moveToFirst()) {
+            String savedPassword = cursor.getString(cursor.getColumnIndex(COLUMN_PASSWORD));
+            int isVerified = cursor.getInt(cursor.getColumnIndex(COLUMN_IS_VERIFIED));
+            cursor.close();
+            
+            // Only compare hashed passwords
+            String hashedInputPassword = hashPassword(password);
+            if (hashedInputPassword == null || !hashedInputPassword.equals(savedPassword)) {
+                return false;
+            }
+            
+            // If password matches but user is not verified, return false
+            if (isVerified != 1) {
+                return false;
+            }
+            
+            return true;
+        }
+        return false;
+    }
+
+    public boolean registerUser(String username, String email, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        
+        // Check if email already exists
+        Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_EMAIL}, 
+            COLUMN_EMAIL + "=?", new String[]{email}, null, null, null);
+        
+        if (cursor.getCount() > 0) {
+            cursor.close();
+            return false; // Email already exists
+        }
+        cursor.close();
+        
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USERNAME, username);
+        values.put(COLUMN_EMAIL, email);
+        values.put(COLUMN_PASSWORD, hashPassword(password));
+        values.put(COLUMN_IS_VERIFIED, 0); // User starts unverified
+        
+        long result = db.insert(TABLE_USERS, null, values);
+        return result != -1;
+    }
+
+    public String getUsername(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_USERNAME};
+        String selection = COLUMN_EMAIL + "=?";
+        String[] selectionArgs = {email};
+        
+        Log.d("DatabaseHelper", "Getting username for email: " + email);
+        
+        Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
+        
+        if (cursor != null && cursor.moveToFirst()) {
+            String username = cursor.getString(cursor.getColumnIndex(COLUMN_USERNAME));
+            Log.d("DatabaseHelper", "Found username: " + username);
+            cursor.close();
+            return username;
+        }
+        
+        Log.d("DatabaseHelper", "No username found for email: " + email);
+        return "";
+    }
+
+    public boolean updateUserProfile(String oldEmail, String newEmail, String newUsername) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_EMAIL, newEmail);
+        values.put(COLUMN_USERNAME, newUsername);
+        
+        Log.d("DatabaseHelper", "Updating user profile - Old Email: '" + oldEmail + "', New Email: '" + newEmail + "', New Username: '" + newUsername + "'");
+        
+        int rowsAffected = db.update(TABLE_USERS, values, COLUMN_EMAIL + "=?", new String[]{oldEmail});
+        boolean success = rowsAffected > 0;
+        
+        Log.d("DatabaseHelper", "Profile update " + (success ? "successful" : "failed") + " - Rows affected: " + rowsAffected);
+        
+        return success;
+    }
+
+    public boolean verifyUserProfile(String email, String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {COLUMN_USERNAME};
+        String selection = COLUMN_EMAIL + "=? AND " + COLUMN_USERNAME + "=?";
+        String[] selectionArgs = {email, username};
+        
+        Log.d("DatabaseHelper", "Verifying user profile - Email: '" + email + "', Username: '" + username + "'");
+        
+        Cursor cursor = db.query(TABLE_USERS, columns, selection, selectionArgs, null, null, null);
+        boolean exists = cursor != null && cursor.moveToFirst();
+        
+        if (cursor != null) {
+            cursor.close();
+        }
+        
+        Log.d("DatabaseHelper", "Profile verification " + (exists ? "successful" : "failed"));
+        return exists;
     }
 }
