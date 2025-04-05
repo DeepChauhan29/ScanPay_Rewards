@@ -141,8 +141,9 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="16dp"
                 android:contentDescription="App Logo"
-                app:srcCompat="@drawable/img"
-                app:tint="?android:textColorPrimary"/>
+                app:srcCompat="@drawable/img" />
+<!--                app:tint="?android:textColorPrimary"-->
+
 
             <!-- Welcome Heading -->
             <TextView

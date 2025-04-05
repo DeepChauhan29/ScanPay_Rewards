@@ -76,7 +76,9 @@
             android:layout_height="wrap_content"
             android:text="Edit Profile"
             android:layout_marginTop="16dp"
-            style="@style/Widget.App.Button"/>
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            style="@style/Widget.App.Button.Primary"/>
 
         <Button
             android:id="@+id/changePasswordButton"
@@ -84,7 +86,9 @@
             android:layout_height="wrap_content"
             android:text="Change Password"
             android:layout_marginTop="8dp"
-            style="@style/Widget.App.Button"/>
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            style="@style/Widget.App.Button.Primary"/>
 
         <Button
             android:id="@+id/logoutButton"
@@ -92,9 +96,11 @@
             android:layout_height="wrap_content"
             android:text="Logout"
             android:textColor="@color/white"
-            android:backgroundTint="@color/statusError"
             android:layout_marginTop="16dp"
-            style="@style/Widget.MaterialComponents.Button"/>
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:backgroundTint="@color/statusError"
+            style="@style/Widget.App.Button.Primary"/>
     </LinearLayout>
 
     <View
