@@ -32,7 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/card"
-        app:cardBackgroundColor="@color/black_shade_1"
+        app:cardBackgroundColor="@color/cardBackgroundDark"
         app:cardElevation="4dp"
         app:cardCornerRadius="15dp"
         android:layout_below="@+id/profile"
@@ -53,7 +53,8 @@
         android:layout_width="200dp"
         android:layout_height="200dp"
         android:layout_marginTop="30dp"
-        app:srcCompat="@drawable/img"/>
+        app:srcCompat="@drawable/img"
+        app:tint="?android:textColorPrimary"/>
 
     <TextView
         android:id="@+id/Heading"

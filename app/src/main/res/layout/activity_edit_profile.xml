@@ -55,19 +55,21 @@
 
         <Button
             android:id="@+id/saveButton"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Save"
             android:layout_marginEnd="8dp"
-            style="@style/Widget.App.Button"/>
+            style="@style/Widget.App.Button.Primary"/>
 
         <Button
             android:id="@+id/cancelButton"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Cancel"
-            android:textColor="?attr/colorPrimary"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+            android:layout_marginStart="8dp"
+            style="@style/Widget.App.Button.Secondary"/>
     </LinearLayout>
 
 </LinearLayout> 
