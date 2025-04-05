@@ -131,23 +131,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public boolean addUser(String username, String email, String password, String otp) {
         SQLiteDatabase db = this.getWritableDatabase();
         
-        // First check if user exists
-        if (checkEmail(email)) {
-            return false;
-        }
-        
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_USERNAME, username);
-        values.put(COLUMN_EMAIL, email);
-        values.put(COLUMN_PASSWORD, hashPassword(password));
-        values.put(COLUMN_IS_VERIFIED, 0); // User starts as unverified
-        values.put(COLUMN_OTP, otp); // Save the OTP
-
         try {
+            // First check if user exists with a transaction to prevent race conditions
+            db.beginTransaction();
+            
+            // Check if email exists
+            Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_EMAIL}, 
+                COLUMN_EMAIL + "=?", new String[]{email}, null, null, null);
+            
+            boolean emailExists = cursor != null && cursor.moveToFirst();
+            if (cursor != null) {
+                cursor.close();
+            }
+            
+            if (emailExists) {
+                db.endTransaction();
+                Log.d("DatabaseHelper", "Email already exists: " + email);
+                return false;
+            }
+            
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_USERNAME, username);
+            values.put(COLUMN_EMAIL, email);
+            values.put(COLUMN_PASSWORD, hashPassword(password));
+            values.put(COLUMN_IS_VERIFIED, 0); // User starts as unverified
+            values.put(COLUMN_OTP, otp); // Save the OTP
+
             long result = db.insert(TABLE_USERS, null, values);
+            db.setTransactionSuccessful();
+            db.endTransaction();
+            
             return result != -1;
         } catch (Exception e) {
             Log.e("DatabaseHelper", "Error adding user: " + e.getMessage());
+            if (db.inTransaction()) {
+                db.endTransaction();
+            }
             return false;
         }
     }
@@ -652,5 +671,52 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         
         Log.d("DatabaseHelper", "Profile verification " + (exists ? "successful" : "failed"));
         return exists;
+    }
+
+    public int getTotalTransactionCount() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM transactions", null);
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
+
+    public double getTotalCashback() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        double totalCashback = 0.0;
+        
+        try {
+            // Use the correct column name 'cashback' instead of 'cashback_amount'
+            Cursor cursor = db.rawQuery("SELECT SUM(cashback) FROM transactions WHERE status = 'success'", null);
+            
+            if (cursor != null && cursor.moveToFirst()) {
+                totalCashback = cursor.getDouble(0);
+            }
+            if (cursor != null) {
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error getting total cashback: " + e.getMessage());
+        }
+        
+        return totalCashback;
+    }
+
+    public double getTotalAmountPaid() {
+        double totalAmountPaid = 0.0;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT SUM(" + COLUMN_AMOUNT + ") FROM " + TABLE_TRANSACTIONS + " WHERE " + COLUMN_STATUS + " = 'success'", null);
+        if (cursor != null && cursor.moveToFirst()) {
+            totalAmountPaid = cursor.getDouble(0);
+            Log.d("DatabaseHelper", "Total Amount Paid: " + totalAmountPaid);
+            cursor.close();
+        } else {
+            Log.d("DatabaseHelper", "No successful transactions found.");
+        }
+        Log.d("DatabaseHelper", "Query executed: SELECT SUM(" + COLUMN_AMOUNT + ") FROM " + TABLE_TRANSACTIONS + " WHERE " + COLUMN_STATUS + " = 'success'");
+        return totalAmountPaid;
     }
 }

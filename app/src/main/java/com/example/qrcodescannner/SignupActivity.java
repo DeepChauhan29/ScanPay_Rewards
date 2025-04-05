@@ -104,15 +104,24 @@ public class SignupActivity extends AppCompatActivity {
         String otp = generateOTP();
 
         // Save new user and OTP to database
-        if (databaseHelper.addUser(username, email, password, otp)) {
+        boolean userAdded = databaseHelper.addUser(username, email, password, otp);
+        if (userAdded) {
             // Launch OTP verification screen
             Intent intent = new Intent(SignupActivity.this, OTPVerificationActivity.class);
             intent.putExtra(OTPVerificationActivity.EXTRA_EMAIL, email);
             startActivity(intent);
             finish();
         } else {
-            // Show error
-            Toast.makeText(this, "Error creating account. Please try again.", Toast.LENGTH_SHORT).show();
+            // Check if the failure was due to email already existing
+            if (databaseHelper.checkEmail(email)) {
+                Toast.makeText(this, "This email is already registered. Please login or use a different email.", Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                // Show generic error
+                Toast.makeText(this, "Error creating account. Please try again.", Toast.LENGTH_SHORT).show();
+            }
             progressBar.setVisibility(View.GONE);
             signupButton.setEnabled(true);
         }

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/backgroundPrimary">
 
     <ImageView
         android:id="@+id/resultIcon"
@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Payment Successful!"
-        android:textColor="#4CAF50"
+        android:textColor="@color/statusSuccess"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -37,6 +37,7 @@
         android:paddingHorizontal="32dp"
         android:text="Your payment has been processed successfully."
         android:textSize="16sp"
+        android:textColor="@color/textPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/resultTitle" />
@@ -47,7 +48,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:layout_marginHorizontal="24dp"
-        android:background="#F5F5F5"
+        android:background="@color/backgroundCard"
         android:orientation="vertical"
         android:padding="16dp"
         app:layout_constraintTop_toBottomOf="@id/resultMessage">
@@ -57,7 +58,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Amount"
-            android:textColor="#666666"
+            android:textColor="@color/textSecondary"
             android:textSize="14sp" />
 
         <TextView
@@ -65,7 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="#000000"
+            android:textColor="@color/textPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -74,14 +75,14 @@
             android:layout_height="1dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
-            android:background="#DDDDDD" />
+            android:background="@color/dividerLight" />
 
         <TextView
             android:id="@+id/appLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Payment App"
-            android:textColor="#666666"
+            android:textColor="@color/textSecondary"
             android:textSize="14sp" />
 
         <TextView
@@ -89,7 +90,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="#000000"
+            android:textColor="@color/textPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -98,14 +99,14 @@
             android:layout_height="1dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
-            android:background="#DDDDDD" />
+            android:background="@color/dividerLight" />
 
         <TextView
             android:id="@+id/cashbackLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cashback"
-            android:textColor="#666666"
+            android:textColor="@color/textSecondary"
             android:textSize="14sp" />
 
         <TextView
@@ -113,7 +114,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:textColor="#4CAF50"
+            android:textColor="@color/statusSuccess"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -124,10 +125,10 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
         android:layout_marginBottom="32dp"
-        android:backgroundTint="#4CAF50"
+        android:backgroundTint="@color/colorPrimary"
         android:padding="12dp"
         android:text="Scan Another QR"
-        android:textColor="@android:color/white"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

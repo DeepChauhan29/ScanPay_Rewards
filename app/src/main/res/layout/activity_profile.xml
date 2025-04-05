@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/backgroundPrimary">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,7 +17,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             app:cardCornerRadius="8dp"
-            app:cardElevation="4dp">
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="@color/backgroundCard">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -31,6 +32,7 @@
                     android:text="Profile Information"
                     android:textSize="20sp"
                     android:textStyle="bold"
+                    android:textColor="@color/textPrimary"
                     android:layout_marginBottom="16dp"/>
 
                 <TextView
@@ -39,6 +41,7 @@
                     android:text="Name:"
                     android:textStyle="bold"
                     android:textSize="16sp"
+                    android:textColor="@color/textPrimary"
                     android:layout_marginBottom="4dp"/>
 
                 <TextView
@@ -46,6 +49,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
+                    android:textColor="@color/textSecondary"
                     android:layout_marginBottom="8dp"/>
 
                 <TextView
@@ -54,13 +58,15 @@
                     android:text="Email:"
                     android:textStyle="bold"
                     android:textSize="16sp"
+                    android:textColor="@color/textPrimary"
                     android:layout_marginBottom="4dp"/>
 
                 <TextView
                     android:id="@+id/emailTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="16sp"/>
+                    android:textSize="16sp"
+                    android:textColor="@color/textSecondary"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -70,7 +76,7 @@
             android:layout_height="wrap_content"
             android:text="Edit Profile"
             android:layout_marginTop="16dp"
-            android:background="@drawable/btnback"/>
+            style="@style/Widget.App.Button"/>
 
         <Button
             android:id="@+id/changePasswordButton"
@@ -78,15 +84,15 @@
             android:layout_height="wrap_content"
             android:text="Change Password"
             android:layout_marginTop="8dp"
-            android:background="@drawable/btnback"/>
+            style="@style/Widget.App.Button"/>
 
         <Button
             android:id="@+id/logoutButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Logout"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#FF5722"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/statusError"
             android:layout_marginTop="16dp"/>
     </LinearLayout>
 

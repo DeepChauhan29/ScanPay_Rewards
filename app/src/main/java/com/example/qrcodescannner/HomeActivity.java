@@ -13,9 +13,12 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -53,6 +56,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class HomeActivity extends AppCompatActivity {
     private Button Scanbtn;
@@ -76,55 +80,37 @@ public class HomeActivity extends AppCompatActivity {
     private static final String READ_MEDIA_IMAGES_PERMISSION = Manifest.permission.READ_MEDIA_IMAGES;
     private static final int REQUEST_CODE_PERMISSIONS = 1;
     private ActivityResultLauncher<Intent> galleryLauncher;
+    private TextView welcomeText, userNameText, totalTransactions, totalAmountPaid;
+    private DatabaseHelper databaseHelper;
+    private SharedPreferences sharedPreferences;
+    private static final long AUTO_PAUSE_DELAY = 3000; // 3 seconds
+    private Handler autoPauseHandler;
+    private FrameLayout tapToScanOverlay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // Verify login state
-        SharedPreferences sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
-        String storedEmail = sharedPreferences.getString("email", "");
-        
-        if (!sharedPreferences.getBoolean("isLoggedIn", false) || storedEmail.isEmpty()) {
-            // User is not logged in, redirect to LoginActivity
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            return;
-        }
-        
-        // Verify if user exists in database and is verified
-        DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        if (!databaseHelper.checkEmail(storedEmail)) {
-            // User doesn't exist in database, clear login state and redirect to login
-            sharedPreferences.edit().clear().apply();
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            return;
-        }
-        
-        if (!databaseHelper.isEmailVerified(storedEmail)) {
-            // User is not verified, clear login state and redirect to login
-            sharedPreferences.edit().clear().apply();
-            Intent intent = new Intent(this, LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            return;
-        }
-        
-        Log.d(TAG, "onCreate: HomeActivity created");
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
+        // Initialize auto-pause handler
+        autoPauseHandler = new Handler();
+        
+        // Initialize views
+        welcomeText = findViewById(R.id.welcomeText);
+        userNameText = findViewById(R.id.userNameText);
+        totalTransactions = findViewById(R.id.totalTransactions);
+        totalAmountPaid = findViewById(R.id.totalAmountPaid);
+        previewView = findViewById(R.id.previewView);
+        tapToScanOverlay = findViewById(R.id.tapToScanOverlay);
+        
+        // Initialize DatabaseHelper and SharedPreferences
+        databaseHelper = new DatabaseHelper(this);
+        sharedPreferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        
+        // Initialize camera components
+        barcodeScanner = BarcodeScanning.getClient();
+        cameraExecutor = Executors.newSingleThreadExecutor();
+        
         // Initialize gallery launcher
         galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -138,20 +124,41 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         );
-
-        // Initialize upload button
-        Button uploadButton = findViewById(R.id.gallery);
-        uploadButton.setOnClickListener(v -> openGallery());
-
-        // Initialize profile button
-        Button profileButton = findViewById(R.id.profile);
-        profileButton.setOnClickListener(v -> {
-            Intent i = new Intent(HomeActivity.this, ProfileActivity.class);
+        
+        // Load user data and update UI
+        loadUserData();
+        updateStatistics();
+        
+        // Verify login state
+        String storedEmail = sharedPreferences.getString("email", "");
+        if (storedEmail.isEmpty()) {
+            // No stored email, redirect to login
+            Intent i = new Intent(HomeActivity.this, LoginActivity.class);
             startActivity(i);
-        });
+            finish();
+            return;
+        }
+        
+        // Verify if user exists in database and is verified
+        if (!databaseHelper.checkEmail(storedEmail)) {
+            // User doesn't exist in database, clear login state and redirect to login
+            sharedPreferences.edit().clear().apply();
+            Intent i = new Intent(HomeActivity.this, LoginActivity.class);
+            startActivity(i);
+            finish();
+            return;
+        }
+
+        // Initialize FloatingActionButtons
+        FloatingActionButton scanFab = findViewById(R.id.scanButton);
+        FloatingActionButton galleryFab = findViewById(R.id.gallery);
+        
+        scanFab.setOnClickListener(v -> startCamera());
+        galleryFab.setOnClickListener(v -> openGallery());
 
         // Initialize bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        if (bottomNavigationView != null) {
         bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -168,18 +175,16 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
+        }
 
-        previewView = findViewById(R.id.previewView);
-        barcodeScanner = BarcodeScanning.getClient();
-        cameraExecutor = Executors.newSingleThreadExecutor();
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-            accessCamera();
-        } else if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
-            showPermissionRationaleDialog();
+        // Request camera permissions
+        if (allPermissionsGranted()) {
+            startCamera();
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
+
+        setupTapToResumeOverlay();
     }
 
     @Override
@@ -463,8 +468,8 @@ public class HomeActivity extends AppCompatActivity {
         // Always check camera permission
         if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.CAMERA) 
                 != PackageManager.PERMISSION_GRANTED) {
-            return false;
-        }
+                return false;
+            }
         
         // Check appropriate storage permission based on Android version
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -504,8 +509,8 @@ public class HomeActivity extends AppCompatActivity {
                     }
                     
                     if (allGranted) {
-                        startCamera();
-                    } else {
+                startCamera();
+            } else {
                         Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -517,29 +522,57 @@ public class HomeActivity extends AppCompatActivity {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(() -> {
             try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                preview = new Preview.Builder().build();
+                // Unbind all use cases before binding new ones
+                if (cameraProvider != null) {
+                    cameraProvider.unbindAll();
+                }
+
+                // Get camera provider
+                cameraProvider = cameraProviderFuture.get();
+
+                // Create preview use case
+                preview = new Preview.Builder()
+                    .setTargetRotation(previewView.getDisplay().getRotation())
+                    .build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
+                // Create image analysis use case
                 imageAnalysis = new ImageAnalysis.Builder()
-                    .setTargetResolution(new Size(1280, 720))
+                    .setTargetRotation(previewView.getDisplay().getRotation())
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
                 imageAnalysis.setAnalyzer(cameraExecutor, this::universalUPIScanner);
 
+                // Create camera selector
                 CameraSelector cameraSelector = new CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                     .build();
 
-                cameraProvider.bindToLifecycle(
-                    this,
-                    cameraSelector,
-                    preview,
-                    imageAnalysis
-                );
+                try {
+                    // Bind use cases to camera
+                    Camera camera = cameraProvider.bindToLifecycle(
+                        this,
+                        cameraSelector,
+                        preview,
+                        imageAnalysis
+                    );
+                    cameraControl = camera.getCameraControl();
+                    
+                    // Hide the overlay when camera starts
+                    if (tapToScanOverlay != null) {
+                        tapToScanOverlay.setVisibility(View.GONE);
+                    }
+                    
+                    // Start the auto-pause timer
+                    startAutoPauseTimer();
+                    
+                } catch (Exception e) {
+                    Log.e(TAG, "Use case binding failed", e);
+                    Toast.makeText(this, "Failed to initialize camera. Please restart the app.", Toast.LENGTH_LONG).show();
+                }
             } catch (ExecutionException | InterruptedException e) {
-                Log.e(TAG, "Error starting camera", e);
-                Toast.makeText(this, "Failed to start camera", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Error getting camera provider", e);
+                Toast.makeText(this, "Failed to access camera. Please check permissions.", Toast.LENGTH_LONG).show();
             }
         }, ContextCompat.getMainExecutor(this));
     }
@@ -604,9 +637,16 @@ public class HomeActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause: Cleaning up camera resources");
-        if (cameraProvider != null) {
-            cameraProvider.unbindAll();
+        
+        // Cancel the auto-pause handler
+        if (autoPauseHandler != null) {
+            autoPauseHandler.removeCallbacksAndMessages(null);
         }
+        
+        // Pause camera and scanner
+        pauseCameraAndScanner();
+        
+        // Release camera executor
         if (cameraExecutor != null) {
             cameraExecutor.shutdown();
         }
@@ -615,31 +655,113 @@ public class HomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume: Reinitializing camera");
         
-        // Reinitialize camera executor if needed
+        // Initialize camera executor if needed
         if (cameraExecutor == null || cameraExecutor.isShutdown()) {
             cameraExecutor = Executors.newSingleThreadExecutor();
         }
         
-        // Reinitialize barcode scanner if needed
-        if (barcodeScanner == null) {
-            barcodeScanner = BarcodeScanning.getClient();
+        // Start camera and scanner
+        resumeCameraAndScanner();
+        
+        // Start auto-pause timer
+        startAutoPauseTimer();
+    }
+
+    private void loadUserData() {
+        try {
+            String userName = sharedPreferences.getString("userName", "");
+            if (userNameText != null) {
+                userNameText.setText(userName);
+                            }
+                        } catch (Exception e) {
+            Log.e(TAG, "Error loading user data: " + e.getMessage());
+        }
+    }
+
+    private void updateStatistics() {
+        try {
+            if (totalTransactions != null && totalAmountPaid != null) {
+                // Get total transactions
+                int transactionCount = databaseHelper.getTotalTransactionCount();
+                totalTransactions.setText(String.valueOf(transactionCount));
+
+                // Get total amount paid
+                double totalAmountPaidValue = databaseHelper.getTotalAmountPaid();
+                totalAmountPaid.setText("₹" + String.format("%.2f", totalAmountPaidValue));
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error updating statistics: " + e.getMessage());
+        }
+    }
+
+    private void setupTapToResumeOverlay() {
+        if (tapToScanOverlay != null) {
+            tapToScanOverlay.setOnClickListener(v -> {
+                Log.d(TAG, "Preview tapped to resume scanner and camera");
+                resumeCameraAndScanner();
+                startAutoPauseTimer(); // Restart the auto-pause timer
+            });
+        }
+    }
+
+    private void pauseCameraAndScanner() {
+        if (cameraProvider != null) {
+            try {
+                // Cancel any existing timer
+                if (autoPauseHandler != null) {
+                    autoPauseHandler.removeCallbacksAndMessages(null);
+                }
+                
+                // Unbind all use cases to pause the camera
+                cameraProvider.unbindAll();
+                Log.d(TAG, "Camera and scanner paused successfully");
+                
+                // Show the tap to resume overlay
+                if (tapToScanOverlay != null) {
+                    tapToScanOverlay.setVisibility(View.VISIBLE);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error pausing camera", e);
+            }
+        }
+    }
+
+    private void resumeCameraAndScanner() {
+        if (cameraProvider != null) {
+            try {
+                // Hide the tap to resume overlay
+                if (tapToScanOverlay != null) {
+                    tapToScanOverlay.setVisibility(View.GONE);
+                }
+                
+                // Start the camera
+                startCamera();
+                Log.d(TAG, "Camera and scanner resumed successfully");
+            } catch (Exception e) {
+                Log.e(TAG, "Error resuming camera", e);
+            }
+        } else {
+            // If cameraProvider is null, try to start the camera from scratch
+            if (allPermissionsGranted()) {
+                startCamera();
+            }
+        }
+    }
+
+    private void startAutoPauseTimer() {
+        // Cancel any existing timer
+        if (autoPauseHandler != null) {
+            autoPauseHandler.removeCallbacksAndMessages(null);
         }
         
-        // Start camera if permissions are granted
-        if (allPermissionsGranted()) {
-            new Handler().postDelayed(() -> {
-                try {
-                    if (cameraProvider != null) {
-                        cameraProvider.unbindAll();
-                    }
-                    accessCamera();
-                } catch (Exception e) {
-                    Log.e(TAG, "Error restarting camera in onResume", e);
-                    Toast.makeText(this, "Failed to restart camera. Please try again.", Toast.LENGTH_SHORT).show();
-                }
-            }, 500); // Small delay to ensure resources are properly released
-        }
+        // Start new timer
+        autoPauseHandler.postDelayed(() -> {
+            if (!isFinishing() && !isDestroyed() && cameraProvider != null) {
+                runOnUiThread(() -> {
+                    pauseCameraAndScanner();
+                });
+            }
+        }, AUTO_PAUSE_DELAY);
     }
 }

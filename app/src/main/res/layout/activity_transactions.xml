@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/backgroundPrimary"
     tools:context=".TransactionsActivity">
 
     <LinearLayout
@@ -23,7 +23,7 @@
             android:gravity="center"
             android:padding="@dimen/standard_padding"
             android:background="@color/colorPrimary"
-            android:textColor="@android:color/white"/>
+            android:textColor="@color/white"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -33,7 +33,7 @@
                 android:id="@+id/transactions_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:divider="@android:color/darker_gray"
+                android:divider="@color/dividerLight"
                 android:dividerHeight="0.5dp"
                 android:padding="8dp" />
 
@@ -45,6 +45,7 @@
                 android:gravity="center"
                 android:text="No transactions yet!"
                 android:textSize="18sp"
+                android:textColor="@color/textPrimary"
                 android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
