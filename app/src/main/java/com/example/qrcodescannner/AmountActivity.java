@@ -507,18 +507,18 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                 
                 // Only show completion dialog if the app was successfully launched
                 if (appLaunched) {
-                    // Show dialog after a brief delay to allow app switching animation
-                    new android.os.Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (!isFinishing() && !isDestroyed()) {
-                                showPaymentCompletionDialog(appName, amountInt);
-                            }
+                // Show dialog after a brief delay to allow app switching animation
+                new android.os.Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!isFinishing() && !isDestroyed()) {
+                            showPaymentCompletionDialog(appName, amountInt);
                         }
-                    }, 1500); // Use 1.5 second delay for better UX
+                    }
+                }, 1500); // Use 1.5 second delay for better UX
                 }
                 
-            } catch (Exception e) {
+        } catch (Exception e) {
                 Log.e("AmountActivity", "Error launching payment: " + e.getMessage(), e);
                 Toast.makeText(AmountActivity.this, "Error launching payment app: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -806,14 +806,14 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                 "&am=" + amount +
                 "&cu=INR";
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(uri));
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(uri));
         intent.setPackage(packageName); // Set the package name
             
         // Check if the app is installed
         if (isAppInstalled(packageName)) {
             try {
-                startActivity(intent);
+                    startActivity(intent);
                 return true; // App was launched successfully
             } catch (ActivityNotFoundException e) {
                 // Try alternative package if available
@@ -836,7 +836,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                 startActivity(chooser);
                 return true; // Chooser was shown
             }
-        } else {
+            } else {
             String playStoreLink = getPlayStoreLink(packageName);
             showDownloadDialog("App Not Installed", playStoreLink);
             return false; // App was not launched because it's not installed
@@ -935,10 +935,10 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                     public void onClick(DialogInterface dialog, int which) {
                         // Redirect to Play Store
                         try {
-                            Intent intent = new Intent(Intent.ACTION_VIEW);
-                            intent.setData(Uri.parse(playStoreLink));
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(playStoreLink));
                             Log.d("PaymentApp", "Launching Play Store with link: " + playStoreLink);
-                            startActivity(intent);
+                        startActivity(intent);
                             Log.d("PaymentApp", "Successfully redirected to Play Store");
                         } catch (ActivityNotFoundException e) {
                             Log.e("PaymentApp", "Failed to open Play Store: " + e.getMessage());

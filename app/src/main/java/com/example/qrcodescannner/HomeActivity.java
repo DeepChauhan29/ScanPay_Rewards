@@ -585,9 +585,6 @@ public class HomeActivity extends AppCompatActivity {
                     // Start the auto-pause timer
                     startAutoPauseTimer();
                     
-                    // Flash a toast to indicate scanner is active
-                    Toast.makeText(this, "QR Scanner active", Toast.LENGTH_SHORT).show();
-                    
                 } catch (Exception e) {
                     Log.e(TAG, "Use case binding failed", e);
                     Toast.makeText(this, "Failed to initialize camera. Please restart the app.", Toast.LENGTH_LONG).show();
