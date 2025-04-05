@@ -97,7 +97,7 @@ public class HomeActivity extends AppCompatActivity {
 
         // Initialize auto-pause handler
         autoPauseHandler = new Handler();
-        
+
         // Initialize views
         welcomeText = findViewById(R.id.welcomeText);
         userNameText = findViewById(R.id.userNameText);
@@ -560,11 +560,11 @@ public class HomeActivity extends AppCompatActivity {
                 try {
                     // Bind use cases to camera
                     Camera camera = cameraProvider.bindToLifecycle(
-                        this,
-                        cameraSelector,
-                        preview,
-                        imageAnalysis
-                    );
+                    this,
+                    cameraSelector,
+                    preview,
+                    imageAnalysis
+                );
                     cameraControl = camera.getCameraControl();
                     
                     // Hide the overlay when camera starts
@@ -702,7 +702,7 @@ public class HomeActivity extends AppCompatActivity {
 
                 // Get total amount paid with debug info
                 debugCheckTransactions();
-                
+
                 double totalAmountPaidValue = databaseHelper.getTotalAmountPaid();
                 
                 // Ensure the amount is properly displayed

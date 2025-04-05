@@ -29,7 +29,7 @@
                     android:id="@+id/welcomeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Welcome back!"
+                    android:text="Welcome!"
                     android:textSize="24sp"
                     android:textColor="?android:textColorPrimary"
                     android:textStyle="bold"/>
@@ -152,7 +152,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:text="Welcome to UPI scanner"
+                android:text="Welcome to ScanPay Rewards"
                 android:gravity="center"
                 android:textAlignment="center"
                 android:textSize="24sp"

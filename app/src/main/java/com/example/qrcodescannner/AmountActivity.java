@@ -67,8 +67,9 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
     private String selectedApp = ""; // Remove default selection
 
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
+    private String gpayPlayStoreLink = "https://play.google.com/store/apps/details?id=com.google.android.apps.nbu.paisa.user"; // Google Pay Play Store link
     private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
-    private String naviPlayStoreLink = "https://play.google.com/store/apps/details?id=com.navi.android"; // Navi Play Store link
+    private String naviPlayStoreLink = "https://play.google.com/store/apps/details?id=com.naviapp&hl=en"; // Corrected Navi Play Store link
     private String supermoneyPlayStoreLink = "https://play.google.com/store/apps/details?id=money.super.payments&hl=en"; // Supermoney Play Store link
     private String paytmPlayStoreLink = "https://play.google.com/store/apps/details?id=net.one97.paytm"; // Paytm Play Store link
     private String phonepePlayStoreLink = "https://play.google.com/store/apps/details?id=com.phonepe.app"; // PhonePe Play Store link
@@ -635,20 +636,23 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
             final String appName = getAppNameFromPackage(selectedApp);
             
             try {
-                // Launch payment app without any handler delay
-                launchPayment(selectedApp, amountInt);
+                // Launch payment app and check if successful
+                boolean appLaunched = launchPayment(selectedApp, amountInt);
                 
-                // Show dialog after a brief delay to allow app switching animation
-                new android.os.Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (!isFinishing() && !isDestroyed()) {
-                            showPaymentCompletionDialog(appName, amountInt);
+                // Only show completion dialog if the app was successfully launched
+                if (appLaunched) {
+                    // Show dialog after a brief delay to allow app switching animation
+                    new android.os.Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (!isFinishing() && !isDestroyed()) {
+                                showPaymentCompletionDialog(appName, amountInt);
+                            }
                         }
-                    }
-                }, 1500); // Use 1.5 second delay for better UX
+                    }, 1500); // Use 1.5 second delay for better UX
+                }
                 
-        } catch (Exception e) {
+            } catch (Exception e) {
                 Log.e("AmountActivity", "Error launching payment: " + e.getMessage(), e);
                 Toast.makeText(AmountActivity.this, "Error launching payment app: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -925,20 +929,21 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
         launchPayment("com.phonepe.app", amount);
     }
 
-    private void launchPayment(String packageName, int amount) {
+    private boolean launchPayment(String packageName, int amount) {
         String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() +
                 "&pn=" + payeeNameTextView.getText().toString() +
                 "&am=" + amount +
                 "&cu=INR";
 
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(uri));
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(uri));
         intent.setPackage(packageName); // Set the package name
             
         // Check if the app is installed
         if (isAppInstalled(packageName)) {
             try {
-                    startActivity(intent);
+                startActivity(intent);
+                return true; // App was launched successfully
             } catch (ActivityNotFoundException e) {
                 // Try alternative package if available
                 String altPackage = getAlternativePackage(packageName);
@@ -949,7 +954,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                         altIntent.setData(Uri.parse(uri));
                         altIntent.setPackage(altPackage);
                         startActivity(altIntent);
-                return;
+                        return true; // Alternative app was launched successfully
                     } catch (ActivityNotFoundException ex) {
                         Log.e("PaymentApp", "Alternative app also failed to launch: " + ex.getMessage());
                     }
@@ -958,23 +963,25 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                 // If all fails, show the chooser
                 Intent chooser = Intent.createChooser(intent, "Pay with");
                 startActivity(chooser);
+                return true; // Chooser was shown
             }
-            } else {
+        } else {
             String playStoreLink = getPlayStoreLink(packageName);
             showDownloadDialog("App Not Installed", playStoreLink);
+            return false; // App was not launched because it's not installed
         }
     }
 
     private String getAlternativePackage(String packageName) {
         switch (packageName) {
             case "com.naviapp":
-                return "com.navi.android";
+                return null; // No alternative needed - this is the correct package
             case "money.super.payments":
                 return "com.supermoney";
             case "com.dreamplug.androidapp":
                 return "com.cred.club";
-            case "com.navi.android":
-                return "com.naviapp";
+            case "com.navi.android": // Old package name for Navi
+                return "com.naviapp"; // Map to correct package
             case "com.supermoney":
                 return "money.super.payments";
             case "com.cred.club":
@@ -1031,15 +1038,41 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void showDownloadDialog(String title, String playStoreLink) {
+        Log.d("PaymentApp", "Showing download dialog for Play Store link: " + playStoreLink);
+        
+        String appName = "selected";
+        if (playStoreLink.equals(gpayPlayStoreLink)) {
+            appName = "Google Pay";
+        } else if (playStoreLink.equals(credPlayStoreLink)) {
+            appName = "CRED";
+        } else if (playStoreLink.equals(naviPlayStoreLink)) {
+            appName = "Navi";
+        } else if (playStoreLink.equals(supermoneyPlayStoreLink)) {
+            appName = "SuperMoney";
+        } else if (playStoreLink.equals(paytmPlayStoreLink)) {
+            appName = "Paytm";
+        } else if (playStoreLink.equals(phonepePlayStoreLink)) {
+            appName = "PhonePe";
+        }
+        
+        Log.d("PaymentApp", "App being redirected to Play Store: " + appName);
+        
         new AlertDialog.Builder(this)
                 .setTitle(title)
-                .setMessage("The selected app is not installed. Do you want to continue to the Play Store to download it?")
+                .setMessage("The " + appName + " app is not installed. Do you want to continue to the Play Store to download it?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         // Redirect to Play Store
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(playStoreLink));
-                        startActivity(intent);
+                        try {
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            intent.setData(Uri.parse(playStoreLink));
+                            Log.d("PaymentApp", "Launching Play Store with link: " + playStoreLink);
+                            startActivity(intent);
+                            Log.d("PaymentApp", "Successfully redirected to Play Store");
+                        } catch (ActivityNotFoundException e) {
+                            Log.e("PaymentApp", "Failed to open Play Store: " + e.getMessage());
+                            Toast.makeText(AmountActivity.this, "Couldn't open Google Play Store", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
