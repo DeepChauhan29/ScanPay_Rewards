@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme (Light Theme) -->
-    <style name="Theme.QRCodeScanner" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.QRCodeScanner" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand colors -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
@@ -26,7 +26,7 @@
         <item name="android:textColorHint">@color/textHintLight</item>
         
         <!-- Card colors -->
-        <item name="cardBackgroundColor">@color/white</item>
+        <item name="cardBackgroundColor">@color/cardBackgroundLight</item>
         <item name="cardElevation">2dp</item>
         <item name="cardCornerRadius">8dp</item>
         
@@ -37,17 +37,17 @@
         <item name="floatingActionButtonStyle">@style/Widget.App.FloatingActionButton</item>
         
         <!-- Bottom navigation theme -->
-        <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView.Light</item>
+        <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView</item>
 
         <!-- Input colors -->
-        <item name="textInputStyle">@style/Widget.App.TextInputLayout.Light</item>
+        <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
     </style>
 
     <!-- Button style -->
     <style name="Widget.App.Button" parent="Widget.MaterialComponents.Button">
         <item name="backgroundTint">@color/colorPrimary</item>
         <item name="android:textColor">@color/white</item>
-        <item name="rippleColor">@color/rippleDark</item>
+        <item name="rippleColor">@color/rippleLight</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
         <item name="android:textSize">16sp</item>
@@ -57,39 +57,38 @@
     <style name="Widget.App.FloatingActionButton" parent="Widget.MaterialComponents.FloatingActionButton">
         <item name="backgroundTint">@color/colorPrimary</item>
         <item name="tint">@color/white</item>
-        <item name="rippleColor">@color/rippleDark</item>
+        <item name="rippleColor">@color/rippleLight</item>
     </style>
 
-    <!-- Bottom Navigation style (Light) -->
-    <style name="Widget.App.BottomNavigationView.Light" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.App.BottomNavigationView.Light</item>
-        <item name="android:background">@color/white</item>
+    <!-- Bottom Navigation style -->
+    <style name="Widget.App.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.BottomNavigationView</item>
+        <item name="android:background">@color/bottomNavBackgroundLight</item>
         <item name="itemIconTint">@color/bottom_nav_color</item>
         <item name="itemTextColor">@color/bottom_nav_color</item>
+        <item name="itemIconSize">@dimen/nav_bar_icon_size</item>
+        <item name="elevation">@dimen/nav_bar_elevation</item>
     </style>
 
-    <style name="ThemeOverlay.App.BottomNavigationView.Light" parent="">
+    <style name="ThemeOverlay.App.BottomNavigationView" parent="">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSurface">@color/white</item>
-        <item name="colorOnSurface">@color/textSecondary</item>
+        <item name="colorSurface">@color/bottomNavBackgroundLight</item>
+        <item name="colorOnSurface">@color/bottomNavUnselectedLight</item>
     </style>
 
-    <!-- Text Input style (Light) -->
-    <style name="Widget.App.TextInputLayout.Light" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+    <!-- Text Input style -->
+    <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxStrokeColor">@color/colorPrimary</item>
         <item name="hintTextColor">@color/colorPrimary</item>
         <item name="android:textColorHint">@color/textHintLight</item>
         <item name="boxBackgroundColor">@color/backgroundPrimaryLight</item>
     </style>
-
-    <!-- Base Text Input Layout Style (will inherit from light version) -->
-    <style name="Widget.App.TextInputLayout" parent="Widget.App.TextInputLayout.Light">
-        <!-- This style inherits all properties from light version -->
+    
+    <!-- For legacy support - to be removed -->
+    <style name="Widget.App.TextInputLayout.Light" parent="Widget.App.TextInputLayout">
     </style>
-
-    <!-- Base Bottom Navigation Style (will inherit from light version) -->
-    <style name="Widget.App.BottomNavigationView" parent="Widget.App.BottomNavigationView.Light">
-        <!-- This style inherits all properties from light version -->
+    
+    <style name="Widget.App.BottomNavigationView.Light" parent="Widget.App.BottomNavigationView">
     </style>
 </resources>

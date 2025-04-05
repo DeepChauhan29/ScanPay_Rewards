@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary colors -->
+    <!-- Primary brand colors (same in both themes) -->
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
     <color name="colorAccent">#03A9F4</color>
     <color name="colorAccentDark">#0288D1</color>
 
-    <!-- Text colors (enhanced contrast) -->
+    <!-- Light theme colors -->
     <color name="textPrimary">#212121</color>
     <color name="textSecondary">#757575</color>
     <color name="textHintLight">#757575</color>
-
-    <!-- Background colors -->
     <color name="backgroundPrimaryLight">#FFFFFF</color>
     <color name="backgroundSecondaryLight">#F5F5F5</color>
-    <color name="backgroundPrimary">#121212</color>
-    <color name="backgroundSecondary">#1E1E1E</color>
+    <color name="cardBackgroundLight">#FFFFFF</color>
+    <color name="dividerLight">#E0E0E0</color>
+    <color name="borderLight">#E0E0E0</color>
+    <color name="bottomNavBackgroundLight">#FFFFFF</color>
+    <color name="bottomNavUnselectedLight">#757575</color>
+    <color name="rippleLight">#331976D2</color>
+    <color name="cardUnselectedLight">#F0F0F0</color>
 
     <!-- Dark theme colors -->
     <color name="textPrimaryDark">#FFFFFF</color>
@@ -23,34 +26,30 @@
     <color name="textHintDark">#AAAAAA</color>
     <color name="backgroundPrimaryDark">#121212</color>
     <color name="backgroundSecondaryDark">#1E1E1E</color>
+    <color name="cardBackgroundDark">#2C2C2C</color>
+    <color name="dividerDark">#3C3C3C</color>
+    <color name="borderDark">#3C3C3C</color>
+    <color name="bottomNavBackgroundDark">#1E1E1E</color>
+    <color name="bottomNavUnselectedDark">#AAAAAA</color>
+    <color name="rippleDark">#33FFFFFF</color>
+    <color name="cardUnselectedDark">#242424</color>
 
-    <!-- Common colors -->
+    <!-- Common colors (same in both themes) -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
     <color name="yellow">#FFEB3B</color>
-    <color name="green">#4CAF50</color>
+    <color name="green">#03F80C</color>
     <color name="red">#F44336</color>
     <color name="black_shade_1">#1A1A1A</color>
+    <color name="card_unselected">#F0F0F0</color>
 
-    <!-- Status colors -->
+    <!-- Status colors (same in both themes) -->
     <color name="statusSuccess">#4CAF50</color>
     <color name="statusError">#F44336</color>
-
-    <!-- Card colors -->
-    <color name="cardBackgroundDark">#2C2C2C</color>
-    <color name="backgroundCard">#2C2C2C</color>
-    <color name="borderLight">#E0E0E0</color>
-    <color name="borderDark">#3C3C3C</color>
-
-    <!-- Divider colors -->
-    <color name="dividerLight">#E0E0E0</color>
-    <color name="dividerDark">#3C3C3C</color>
-
-    <!-- Bottom navigation colors -->
-    <color name="bottomNavBackgroundDark">#1E1E1E</color>
-    <color name="bottomNavUnselectedDark">#AAAAAA</color>
-
-    <!-- Ripple colors -->
-    <color name="rippleDark">#33FFFFFF</color>
+    
+    <!-- Deprecated - to be removed after migration -->
+    <color name="backgroundPrimary">@color/backgroundPrimaryDark</color>
+    <color name="backgroundSecondary">@color/backgroundSecondaryDark</color>
+    <color name="backgroundCard">@color/cardBackgroundDark</color>
 </resources>

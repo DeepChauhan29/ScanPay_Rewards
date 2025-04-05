@@ -37,10 +37,10 @@
         <item name="floatingActionButtonStyle">@style/Widget.App.FloatingActionButton</item>
         
         <!-- Bottom navigation theme -->
-        <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView.Dark</item>
+        <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView</item>
 
         <!-- Input colors -->
-        <item name="textInputStyle">@style/Widget.App.TextInputLayout.Dark</item>
+        <item name="textInputStyle">@style/Widget.App.TextInputLayout</item>
     </style>
 
     <!-- Button style -->
@@ -60,23 +60,25 @@
         <item name="rippleColor">@color/rippleDark</item>
     </style>
 
-    <!-- Bottom Navigation style (Dark) -->
-    <style name="Widget.App.BottomNavigationView.Dark" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="materialThemeOverlay">@style/ThemeOverlay.App.BottomNavigationView.Dark</item>
+    <!-- Bottom Navigation style -->
+    <style name="Widget.App.BottomNavigationView" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="materialThemeOverlay">@style/ThemeOverlay.App.BottomNavigationView</item>
         <item name="android:background">@color/bottomNavBackgroundDark</item>
         <item name="itemIconTint">@color/bottom_nav_color</item>
         <item name="itemTextColor">@color/bottom_nav_color</item>
+        <item name="itemIconSize">@dimen/nav_bar_icon_size</item>
+        <item name="elevation">@dimen/nav_bar_elevation</item>
     </style>
 
-    <style name="ThemeOverlay.App.BottomNavigationView.Dark" parent="">
+    <style name="ThemeOverlay.App.BottomNavigationView" parent="">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSurface">@color/bottomNavBackgroundDark</item>
         <item name="colorOnSurface">@color/bottomNavUnselectedDark</item>
     </style>
 
-    <!-- Text Input style (Dark) -->
-    <style name="Widget.App.TextInputLayout.Dark" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+    <!-- Text Input style -->
+    <style name="Widget.App.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="boxStrokeColor">@color/colorPrimary</item>
         <item name="hintTextColor">@color/colorPrimary</item>
         <item name="android:textColorHint">@color/textHintDark</item>

@@ -493,7 +493,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
 
     private void updateCardSelection() {
         int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
+        int unselectedColor = ContextCompat.getColor(this, R.color.card_unselected);
         
         // Set all cards to unselected first
         gpayCard.setCardBackgroundColor(unselectedColor);

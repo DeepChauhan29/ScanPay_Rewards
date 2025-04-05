@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/backgroundPrimary"
+    android:background="?android:colorBackground"
     tools:context=".TransactionsActivity">
 
     <LinearLayout
@@ -22,8 +22,8 @@
             android:textStyle="bold"
             android:gravity="center"
             android:padding="@dimen/standard_padding"
-            android:background="@color/colorPrimary"
-            android:textColor="@color/white"/>
+            android:background="?attr/colorPrimary"
+            android:textColor="?attr/colorOnPrimary"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -33,7 +33,7 @@
                 android:id="@+id/transactions_list"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:divider="@color/dividerLight"
+                android:divider="?attr/colorSurface"
                 android:dividerHeight="0.5dp"
                 android:padding="8dp" />
 
@@ -45,7 +45,7 @@
                 android:gravity="center"
                 android:text="No transactions yet!"
                 android:textSize="18sp"
-                android:textColor="@color/textPrimaryDark"
+                android:textColor="?android:textColorPrimary"
                 android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
@@ -54,14 +54,13 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_above="@id/bottom_navigation"
-        android:background="@color/dividerDark" />
+        android:background="?attr/colorSurface" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@color/bottomNavBackgroundDark"
         app:menu="@menu/bottom_navigation_menu"
         style="@style/Widget.App.BottomNavigationView"
         app:itemIconSize="@dimen/nav_bar_icon_size"

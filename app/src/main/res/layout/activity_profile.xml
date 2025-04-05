@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/backgroundPrimary">
+    android:background="?android:colorBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +18,7 @@
             android:layout_marginTop="16dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="4dp"
-            app:cardBackgroundColor="@color/backgroundCard">
+            app:cardBackgroundColor="?attr/cardBackgroundColor">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -32,7 +32,7 @@
                     android:text="Profile Information"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="@color/textPrimaryDark"
+                    android:textColor="?android:textColorPrimary"
                     android:layout_marginBottom="16dp"/>
 
                 <TextView
@@ -41,7 +41,7 @@
                     android:text="Name:"
                     android:textStyle="bold"
                     android:textSize="16sp"
-                    android:textColor="@color/textPrimaryDark"
+                    android:textColor="?android:textColorPrimary"
                     android:layout_marginBottom="4dp"/>
 
                 <TextView
@@ -49,7 +49,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:textColor="@color/textSecondaryDark"
+                    android:textColor="?android:textColorSecondary"
                     android:layout_marginBottom="8dp"/>
 
                 <TextView
@@ -58,7 +58,7 @@
                     android:text="Email:"
                     android:textStyle="bold"
                     android:textSize="16sp"
-                    android:textColor="@color/textPrimaryDark"
+                    android:textColor="?android:textColorPrimary"
                     android:layout_marginBottom="4dp"/>
 
                 <TextView
@@ -66,7 +66,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:textColor="@color/textSecondaryDark"/>
+                    android:textColor="?android:textColorSecondary"/>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -93,21 +93,21 @@
             android:text="Logout"
             android:textColor="@color/white"
             android:backgroundTint="@color/statusError"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="16dp"
+            style="@style/Widget.MaterialComponents.Button"/>
     </LinearLayout>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_above="@id/bottom_navigation"
-        android:background="@color/dividerDark" />
+        android:background="?attr/colorSurface"/>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@color/bottomNavBackgroundDark"
         app:menu="@menu/bottom_navigation_menu"
         style="@style/Widget.App.BottomNavigationView"
         app:itemIconSize="@dimen/nav_bar_icon_size"

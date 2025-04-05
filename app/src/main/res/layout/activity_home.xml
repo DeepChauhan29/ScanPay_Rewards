@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
-    android:background="@color/backgroundSecondary"
+    android:background="?android:colorBackground"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -23,8 +23,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:background="@color/backgroundCard"
-                >
+                android:background="?attr/cardBackgroundColor">
 
                 <TextView
                     android:id="@+id/welcomeText"
@@ -32,7 +31,7 @@
                     android:layout_height="wrap_content"
                     android:text="Welcome back!"
                     android:textSize="24sp"
-                    android:textColor="@color/textPrimaryDark"
+                    android:textColor="?android:textColorPrimary"
                     android:textStyle="bold"/>
 
                 <TextView
@@ -40,7 +39,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:textColor="@color/textSecondaryDark"
+                    android:textColor="?android:textColorSecondary"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
 
@@ -59,8 +58,7 @@
                     android:layout_height="wrap_content"
                     android:contentDescription="Upload"
                     app:srcCompat="@drawable/upload"
-                    app:backgroundTint="@color/colorPrimary"
-                    app:tint="@color/white"/>
+                    style="@style/Widget.App.FloatingActionButton"/>
             </LinearLayout>
 
             <!-- Camera Preview Card -->
@@ -72,7 +70,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
-                app:cardBackgroundColor="@color/backgroundCard"
+                app:cardBackgroundColor="?attr/cardBackgroundColor"
                 app:cardElevation="4dp"
                 app:cardCornerRadius="15dp">
 
@@ -127,7 +125,7 @@
                 android:gravity="center"
                 android:textAlignment="center"
                 android:textSize="24sp"
-                android:textColor="@color/textPrimaryDark"
+                android:textColor="?android:textColorPrimary"
                 android:textStyle="bold"/>
 
             <!-- Statistics Card -->
@@ -140,7 +138,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="8dp"
-                app:cardBackgroundColor="@color/backgroundCard"
+                app:cardBackgroundColor="?attr/cardBackgroundColor"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -154,7 +152,7 @@
                         android:layout_height="wrap_content"
                         android:text="Quick Actions"
                         android:textSize="18sp"
-                        android:textColor="@color/textPrimaryDark"
+                        android:textColor="?android:textColorPrimary"
                         android:textStyle="bold"/>
 
                     <LinearLayout
@@ -176,7 +174,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="0"
                                 android:textSize="24sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="?attr/colorPrimary"
                                 android:textStyle="bold"/>
 
                             <TextView
@@ -184,7 +182,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Total Transactions"
                                 android:textSize="12sp"
-                                android:textColor="@color/textSecondaryDark"/>
+                                android:textColor="?android:textColorSecondary"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -208,7 +206,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Total Amount Paid"
                                 android:textSize="12sp"
-                                android:textColor="@color/textSecondaryDark"/>
+                                android:textColor="?android:textColorSecondary"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -220,19 +218,14 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_above="@id/bottomNavigationView"
-        android:background="@color/dividerDark" />
+        android:background="?attr/colorSurface" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:background="@color/bottomNavBackgroundDark"
-        app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
         app:menu="@menu/bottom_navigation_menu"
-        app:itemIconSize="@dimen/nav_bar_icon_size"
-        app:elevation="@dimen/nav_bar_elevation"
         style="@style/Widget.App.BottomNavigationView"/>
 
 </RelativeLayout>
