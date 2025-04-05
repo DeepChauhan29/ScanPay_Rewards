@@ -70,7 +70,7 @@ public class HomeActivity extends AppCompatActivity {
     private CameraControl cameraControl; // CameraControl instance
     private float zoomRatio = 1.0f; // Initial zoom ratio
     private int frameCount = 0; // Counter to skip frames
-    private static final int FRAME_SKIP_COUNT = 2; // Analyze every 3rd frame
+    private static final int FRAME_SKIP_COUNT = 1; // Reduced from 2 to analyze more frames
     private ProcessCameraProvider cameraProvider;
     private Preview preview;
     private ImageAnalysis imageAnalysis;
@@ -105,6 +105,9 @@ public class HomeActivity extends AppCompatActivity {
         totalAmountPaid = findViewById(R.id.totalAmountPaid);
         previewView = findViewById(R.id.previewView);
         tapToScanOverlay = findViewById(R.id.tapToScanOverlay);
+        
+        // Setup tap to resume overlay right after initializing it
+        setupTapToResumeOverlay();
         
         // Initialize DatabaseHelper and SharedPreferences
         databaseHelper = new DatabaseHelper(this);
@@ -192,8 +195,6 @@ public class HomeActivity extends AppCompatActivity {
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
-
-        setupTapToResumeOverlay();
     }
 
     @Override
@@ -263,12 +264,8 @@ public class HomeActivity extends AppCompatActivity {
 
     @OptIn(markerClass = ExperimentalGetImage.class)
     private void universalUPIScanner(ImageProxy imageProxy) {
-        if (frameCount++ % FRAME_SKIP_COUNT != 0) {
-            imageProxy.close();
-            return; // Skip frames to reduce processing load
-        }
-
         try {
+            // Remove frame skipping to ensure we analyze every frame
             // Check for null image before processing
             if (imageProxy.getImage() == null) {
                 Log.e(TAG, "Null image received from camera");
@@ -277,9 +274,19 @@ public class HomeActivity extends AppCompatActivity {
             }
             
             InputImage image = InputImage.fromMediaImage(imageProxy.getImage(), imageProxy.getImageInfo().getRotationDegrees());
+            
+            // Log that we're processing an image
+            Log.d(TAG, "Processing image for QR code at rotation: " + imageProxy.getImageInfo().getRotationDegrees());
 
             barcodeScanner.process(image)
                     .addOnSuccessListener(barcodes -> {
+                        if (barcodes.isEmpty()) {
+                            // No barcodes detected
+                            Log.d(TAG, "No barcodes detected in this frame");
+                        } else {
+                            Log.d(TAG, "Detected " + barcodes.size() + " barcodes");
+                        }
+                        
                         for (Barcode barcode : barcodes) {
                             String rawValue = barcode.getRawValue();
                             Log.d("QRDebug", "Scanned QR Code Data: " + rawValue);
@@ -288,15 +295,15 @@ public class HomeActivity extends AppCompatActivity {
                                 Log.d("QRDebug", "Valid UPI QR code detected");
                                 runOnUiThread(() -> parseUPIData(rawValue));
                                 return; // Stop processing after first valid QR code
-                            } else {
+                            } else if (rawValue != null) {
                                 Log.w("QRDebug", "Non-UPI QR Code detected: " + rawValue);
-                                runOnUiThread(() -> Toast.makeText(HomeActivity.this, "This is not a valid UPI QR Code", Toast.LENGTH_SHORT).show());
+                                runOnUiThread(() -> Toast.makeText(HomeActivity.this, "This is not a valid UPI QR Code: " + rawValue, Toast.LENGTH_SHORT).show());
                             }
                         }
                     })
                     .addOnFailureListener(e -> {
                         Log.e("QRDebug", "Barcode detection failed", e);
-                        runOnUiThread(() -> Toast.makeText(HomeActivity.this, "Failed to scan QR Code", Toast.LENGTH_SHORT).show());
+                        runOnUiThread(() -> Toast.makeText(HomeActivity.this, "Failed to scan QR Code: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     })
                     .addOnCompleteListener(task -> imageProxy.close());
         } catch (Exception e) {
@@ -545,9 +552,9 @@ public class HomeActivity extends AppCompatActivity {
                     .build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                // Create image analysis use case
+                // Create image analysis use case with higher resolution
                 imageAnalysis = new ImageAnalysis.Builder()
-                    .setTargetRotation(previewView.getDisplay().getRotation())
+                    .setTargetResolution(new Size(1280, 720))
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
                 imageAnalysis.setAnalyzer(cameraExecutor, this::universalUPIScanner);
@@ -572,8 +579,14 @@ public class HomeActivity extends AppCompatActivity {
                         tapToScanOverlay.setVisibility(View.GONE);
                     }
                     
+                    // Log success
+                    Log.d(TAG, "Camera started successfully");
+                    
                     // Start the auto-pause timer
                     startAutoPauseTimer();
+                    
+                    // Flash a toast to indicate scanner is active
+                    Toast.makeText(this, "QR Scanner active", Toast.LENGTH_SHORT).show();
                     
                 } catch (Exception e) {
                     Log.e(TAG, "Use case binding failed", e);
@@ -738,11 +751,11 @@ public class HomeActivity extends AppCompatActivity {
             
             if (cursor != null && cursor.moveToFirst()) {
                 do {
-                    int id = cursor.getInt(cursor.getColumnIndex("id"));
-                    double amount = cursor.getDouble(cursor.getColumnIndex("amount"));
-                    String appName = cursor.getString(cursor.getColumnIndex("app_name"));
-                    String date = cursor.getString(cursor.getColumnIndex("transaction_date"));
-                    String status = cursor.getString(cursor.getColumnIndex("status"));
+                    int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"));
+                    String appName = cursor.getString(cursor.getColumnIndexOrThrow("app_name"));
+                    String date = cursor.getString(cursor.getColumnIndexOrThrow("transaction_date"));
+                    String status = cursor.getString(cursor.getColumnIndexOrThrow("status"));
                     
                     Log.d(TAG, "Transaction #" + id + ": Amount=" + amount + 
                               ", App=" + appName + ", Date=" + date + 
@@ -759,11 +772,24 @@ public class HomeActivity extends AppCompatActivity {
 
     private void setupTapToResumeOverlay() {
         if (tapToScanOverlay != null) {
+            // Set click listener for the entire overlay
             tapToScanOverlay.setOnClickListener(v -> {
-                Log.d(TAG, "Preview tapped to resume scanner and camera");
+                Log.d(TAG, "Overlay tapped to resume scanner and camera");
                 resumeCameraAndScanner();
                 startAutoPauseTimer(); // Restart the auto-pause timer
             });
+            
+            // Find the resume button and set its click listener
+            Button resumeButton = tapToScanOverlay.findViewById(R.id.resumeButton);
+            if (resumeButton != null) {
+                resumeButton.setOnClickListener(v -> {
+                    Log.d(TAG, "Resume button clicked to resume scanner and camera");
+                    resumeCameraAndScanner();
+                    startAutoPauseTimer(); // Restart the auto-pause timer
+                });
+            } else {
+                Log.e(TAG, "Resume button not found in overlay");
+            }
         }
     }
 

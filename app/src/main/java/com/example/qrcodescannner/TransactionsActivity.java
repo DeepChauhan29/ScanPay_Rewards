@@ -140,7 +140,7 @@ public class TransactionsActivity extends AppCompatActivity {
                         // Set background color based on status
                         Log.d("TransactionsActivity", "Setting status: " + text);
                         if (text != null) {
-                            if (text.equalsIgnoreCase("completed")) {
+                            if (text.equalsIgnoreCase("completed") || text.equalsIgnoreCase("success")) {
                                 v.setBackgroundResource(R.drawable.status_background_completed);
                             } else if (text.equalsIgnoreCase("failed")) {
                                 v.setBackgroundResource(R.drawable.status_background_failed);
