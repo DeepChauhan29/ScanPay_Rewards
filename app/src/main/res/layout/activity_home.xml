@@ -9,7 +9,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/bottom_navigation"
+        android:layout_above="@id/bottomNavigationView"
         android:fillViewport="true">
 
         <RelativeLayout
@@ -32,7 +32,7 @@
                     android:layout_height="wrap_content"
                     android:text="Welcome back!"
                     android:textSize="24sp"
-                    android:textColor="@color/textPrimary"
+                    android:textColor="@color/textPrimaryDark"
                     android:textStyle="bold"/>
 
                 <TextView
@@ -40,7 +40,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16sp"
-                    android:textColor="@color/textSecondary"
+                    android:textColor="@color/textSecondaryDark"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
 
@@ -137,7 +137,7 @@
                 android:gravity="center"
                 android:textAlignment="center"
                 android:textSize="24sp"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/textPrimaryDark"
                 android:textStyle="bold"/>
 
             <!-- Statistics Card -->
@@ -150,6 +150,7 @@
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="8dp"
+                app:cardBackgroundColor="@color/backgroundCard"
                 app:cardElevation="2dp">
 
                 <LinearLayout
@@ -163,7 +164,7 @@
                         android:layout_height="wrap_content"
                         android:text="Quick Actions"
                         android:textSize="18sp"
-                        android:textColor="@color/textPrimary"
+                        android:textColor="@color/textPrimaryDark"
                         android:textStyle="bold"/>
 
                     <LinearLayout
@@ -193,7 +194,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Total Transactions"
                                 android:textSize="12sp"
-                                android:textColor="@color/textSecondary"/>
+                                android:textColor="@color/textSecondaryDark"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -217,7 +218,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Total Amount Paid"
                                 android:textSize="12sp"
-                                android:textColor="@color/textSecondary"/>
+                                android:textColor="@color/textSecondaryDark"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -225,14 +226,23 @@
         </RelativeLayout>
     </ScrollView>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@id/bottomNavigationView"
+        android:background="@color/dividerDark" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
+        android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:background="@color/bottomNavBackgroundDark"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
         app:menu="@menu/bottom_navigation_menu"
-        style="@style/BottomNavigationTheme"
         app:itemIconSize="@dimen/nav_bar_icon_size"
-        app:elevation="@dimen/nav_bar_elevation" />
+        app:elevation="@dimen/nav_bar_elevation"
+        style="@style/Widget.App.BottomNavigationView"/>
 
 </RelativeLayout>

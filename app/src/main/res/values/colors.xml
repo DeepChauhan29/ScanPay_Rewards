@@ -1,74 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand Colors -->
+    <!-- Primary colors -->
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#1976D2</color>
     <color name="colorAccent">#03A9F4</color>
     <color name="colorAccentDark">#0288D1</color>
-    
-    <!-- Light Theme Colors -->
-    <color name="backgroundLight">#F5F5F5</color>
-    <color name="surfaceLight">#FFFFFF</color>
+
+    <!-- Text colors (enhanced contrast) -->
     <color name="textPrimary">#212121</color>
     <color name="textSecondary">#757575</color>
-    <color name="textHint">#BDBDBD</color>
-    <color name="backgroundPrimary">#FFFFFF</color>
-    <color name="backgroundSecondary">#F5F5F5</color>
-    <color name="dividerLight">#E0E0E0</color>
-    <color name="rippleLight">#1F000000</color>
-    
-    <!-- Dark Theme Colors -->
-    <color name="backgroundDark">#121212</color>
-    <color name="surfaceDark">#1E1E1E</color>
+    <color name="textHintLight">#757575</color>
+
+    <!-- Background colors -->
+    <color name="backgroundPrimaryLight">#FFFFFF</color>
+    <color name="backgroundSecondaryLight">#F5F5F5</color>
+    <color name="backgroundPrimary">#121212</color>
+    <color name="backgroundSecondary">#1E1E1E</color>
+
+    <!-- Dark theme colors -->
     <color name="textPrimaryDark">#FFFFFF</color>
-    <color name="textSecondaryDark">#B3FFFFFF</color>
-    <color name="dividerDark">#2C2C2C</color>
-    <color name="rippleDark">#33FFFFFF</color>
-    
-    <!-- Common Colors -->
+    <color name="textSecondaryDark">#CCCCCC</color>
+    <color name="textHintDark">#AAAAAA</color>
+    <color name="backgroundPrimaryDark">#121212</color>
+    <color name="backgroundSecondaryDark">#1E1E1E</color>
+
+    <!-- Common colors -->
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="transparent">#00000000</color>
     <color name="yellow">#FFEB3B</color>
-    <color name="green">#02FF0B</color>
-    <color name="black_shade_1">#1A1A1A</color>
-    <color name="textWhite">#FFFFFF</color>
+    <color name="green">#4CAF50</color>
     <color name="red">#F44336</color>
-    
-    <!-- Status Colors -->
-    <color name="success">#4CAF50</color>
-    <color name="error">#F44336</color>
-    <color name="warning">#FFC107</color>
-    <color name="info">#2196F3</color>
+    <color name="black_shade_1">#1A1A1A</color>
+
+    <!-- Status colors -->
     <color name="statusSuccess">#4CAF50</color>
     <color name="statusError">#F44336</color>
-    
-    <!-- Card Colors -->
-    <color name="cardBackgroundLight">#FFFFFF</color>
-    <color name="cardBackgroundDark">#1E1E1E</color>
-    <color name="cardStrokeLight">#E0E0E0</color>
-    <color name="cardStrokeDark">#2C2C2C</color>
-    <color name="backgroundCard">#FFFFFF</color>
+
+    <!-- Card colors -->
+    <color name="cardBackgroundDark">#2C2C2C</color>
+    <color name="backgroundCard">#2C2C2C</color>
     <color name="borderLight">#E0E0E0</color>
-    
-    <!-- Bottom Navigation Colors -->
-    <color name="bottomNavBackgroundLight">#FFFFFF</color>
+    <color name="borderDark">#3C3C3C</color>
+
+    <!-- Divider colors -->
+    <color name="dividerLight">#E0E0E0</color>
+    <color name="dividerDark">#3C3C3C</color>
+
+    <!-- Bottom navigation colors -->
     <color name="bottomNavBackgroundDark">#1E1E1E</color>
-    <color name="bottomNavSelectedLight">#2196F3</color>
-    <color name="bottomNavSelectedDark">#2196F3</color>
-    <color name="bottomNavUnselectedLight">#757575</color>
-    <color name="bottomNavUnselectedDark">#B3FFFFFF</color>
-    
-    <!-- Input Colors -->
-    <color name="inputBackgroundLight">#FFFFFF</color>
-    <color name="inputBackgroundDark">#2C2C2C</color>
-    <color name="inputHintLight">#757575</color>
-    <color name="inputHintDark">#B3FFFFFF</color>
-    
-    <!-- Legacy Colors (for backward compatibility) -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="bottomNavUnselectedDark">#AAAAAA</color>
+
+    <!-- Ripple colors -->
+    <color name="rippleDark">#33FFFFFF</color>
 </resources>

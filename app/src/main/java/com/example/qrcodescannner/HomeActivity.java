@@ -157,8 +157,7 @@ public class HomeActivity extends AppCompatActivity {
         galleryFab.setOnClickListener(v -> openGallery());
 
         // Initialize bottom navigation
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        if (bottomNavigationView != null) {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -175,7 +174,6 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
-        }
 
         // Request camera permissions
         if (allPermissionsGranted()) {

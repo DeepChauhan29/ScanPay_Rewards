@@ -45,18 +45,25 @@
                 android:gravity="center"
                 android:text="No transactions yet!"
                 android:textSize="18sp"
-                android:textColor="@color/textPrimary"
+                android:textColor="@color/textPrimaryDark"
                 android:visibility="gone" />
         </FrameLayout>
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@id/bottom_navigation"
+        android:background="@color/dividerDark" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
+        android:background="@color/bottomNavBackgroundDark"
         app:menu="@menu/bottom_navigation_menu"
-        style="@style/BottomNavigationTheme"
+        style="@style/Widget.App.BottomNavigationView"
         app:itemIconSize="@dimen/nav_bar_icon_size"
         app:elevation="@dimen/nav_bar_elevation" />
 
