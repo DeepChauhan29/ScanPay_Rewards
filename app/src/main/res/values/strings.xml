@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">QR code scannner</string>
+    <string name="pay_button_text">Pay</string>
+    <string name="name_of_payee">Name of Payee</string>
+</resources>

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.qrcodescannner.AmountActivity">
+
+    <TextView
+        android:id="@+id/PayeeName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/name_of_payee"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="80dp"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/UpiID"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="UpiID@upi"
+        android:layout_marginStart="22dp"
+        android:layout_marginTop="5dp"
+        android:layout_below="@+id/PayeeName"
+        android:textSize="15sp"/>
+
+    <TextView
+        android:id="@+id/rs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="₹"
+        android:layout_marginStart="20dp"
+        android:layout_below="@+id/UpiID"
+        android:layout_marginTop="15dp"
+        android:textSize="35sp"
+        android:textStyle="bold"
+        tools:ignore="HardcodedText" />
+
+    <EditText
+        android:id="@+id/amount"
+        android:layout_width="1000dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/UpiID"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="20sp"
+        android:layout_toEndOf="@+id/rs"
+        android:autofillHints="number"
+        android:hint="0"
+        android:background="?attr/selectableItemBackground"
+        android:inputType="numberDecimal"
+        android:textColor="#A1887F"
+        android:textSize="40sp"
+        tools:ignore="HardcodedText,LabelFor" />
+
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="220dp"
+        android:id="@+id/scrollView">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/navicard"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <RadioButton
+                    android:id="@+id/naviRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@null"
+                    android:background="@drawable/navilogo"
+                    android:padding="16dp"
+                    android:layout_margin="8dp" />
+
+                <TextView
+                    android:id="@+id/naviCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹2"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/credcard"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <RadioButton
+                    android:id="@+id/credRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@null"
+                    android:background="@drawable/credlogo"
+                    android:padding="16dp"
+                    android:layout_margin="8dp" />
+
+                <TextView
+                    android:id="@+id/credCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/gpaycard"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="20dp">
+
+                <RadioButton
+                    android:id="@+id/gpayRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/gpaylogo"
+                    android:button="@null"
+                    android:padding="16dp" />
+
+                <TextView
+                    android:id="@+id/gpayCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹2"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/supermoneycard"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="20dp"
+                android:layout_below="@+id/amount"
+                android:layout_toEndOf="@id/gpaycard"
+                android:layout_marginEnd="20dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <RadioButton
+                    android:id="@+id/superRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@null"
+                    android:background="@drawable/supermoneylogo"
+                    android:padding="16dp"
+                    android:layout_margin="8dp" />
+
+                <TextView
+                    android:id="@+id/superCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/paytmcard"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="20dp"
+                android:layout_below="@+id/amount"
+                android:layout_toEndOf="@id/gpaycard"
+                android:layout_marginEnd="20dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <RadioButton
+                    android:id="@+id/paytmRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@null"
+                    android:background="@drawable/paytmlogo"
+                    android:padding="16dp"
+                    android:layout_margin="8dp" />
+
+                <TextView
+                    android:id="@+id/paytmCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/phonepecard"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginTop="20dp"
+                android:layout_below="@+id/amount"
+                android:layout_toEndOf="@id/gpaycard"
+                android:layout_marginEnd="20dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <RadioButton
+                    android:id="@+id/phonepeRadioButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@null"
+                    android:background="@drawable/phonepelogo"
+                    android:padding="16dp"
+                    android:layout_margin="8dp" />
+
+                <TextView
+                    android:id="@+id/phonepeCashback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="50dp"
+                    android:text="Up to ₹1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="6dp"/>
+
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <Button
+        android:id="@+id/payButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        android:text="Pay Now"
+        android:textSize="18sp"
+        android:padding="15dp"/>
+
+    <Button
+        android:id="@+id/bk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Back"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="10dp"
+        tools:ignore="HardcodedText" />
+
+</RelativeLayout>

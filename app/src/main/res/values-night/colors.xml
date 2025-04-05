@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark Theme Colors -->
+    <color name="backgroundDark">#121212</color>
+    <color name="surfaceDark">#1E1E1E</color>
+    <color name="textPrimary">#FFFFFF</color> <!-- White for dark theme -->
+    <color name="textSecondaryDark">#B3FFFFFF</color>
+    <color name="dividerDark">#2C2C2C</color>
+    <color name="rippleDark">#33FFFFFF</color>
+    
+    <!-- Common Colors -->
+    <!-- Add any additional common colors here -->
+</resources> 
