@@ -14,7 +14,6 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeViewHolder
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
-        void onScanClick();
         void onUploadClick();
         void onLogoutClick();
         void onProfileClick();
@@ -35,12 +34,6 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeViewHolder
     @Override
     public void onBindViewHolder(@NonNull HomeViewHolder holder, int position) {
         // Set up click listeners
-        holder.scanButton.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onScanClick();
-            }
-        });
-
         holder.uploadButton.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onUploadClick();
@@ -66,7 +59,6 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeViewHolder
     }
 
     static class HomeViewHolder extends RecyclerView.ViewHolder {
-        Button scanButton;
         Button uploadButton;
         Button logoutButton;
         Button profileButton;
@@ -75,7 +67,6 @@ public class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.HomeViewHolder
 
         HomeViewHolder(@NonNull View itemView) {
             super(itemView);
-            scanButton = itemView.findViewById(R.id.Scanbtn);
             uploadButton = itemView.findViewById(R.id.uploadButton);
             logoutButton = itemView.findViewById(R.id.logoutButton);
             profileButton = itemView.findViewById(R.id.profile);

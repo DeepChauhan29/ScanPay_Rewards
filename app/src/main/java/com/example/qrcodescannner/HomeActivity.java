@@ -59,7 +59,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class HomeActivity extends AppCompatActivity {
-    private Button Scanbtn;
     private PreviewView previewView;
     private static final String TAG = "HomeActivity";
     private BarcodeScanner barcodeScanner;
@@ -150,10 +149,7 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         // Initialize FloatingActionButtons
-        FloatingActionButton scanFab = findViewById(R.id.scanButton);
         FloatingActionButton galleryFab = findViewById(R.id.gallery);
-        
-        scanFab.setOnClickListener(v -> startCamera());
         galleryFab.setOnClickListener(v -> openGallery());
 
         // Initialize bottom navigation
