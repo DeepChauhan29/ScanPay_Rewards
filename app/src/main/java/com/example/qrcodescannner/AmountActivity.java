@@ -701,7 +701,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                             amount,             // payment amount
                             selectedApp,        // app package name
                             cashbackAmount,     // calculated cashback
-                            "completed"         // transaction status
+                            "success"           // transaction status (changed from "completed" to "success")
                     );
                     
                     if (transactionId > 0) {
@@ -760,7 +760,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                             amount,             // payment amount
                             selectedApp,        // app package name
                             0,                  // no cashback for failed transactions
-                            "failed"            // transaction status
+                            "failed"            // transaction status (keep as "failed")
                     );
                     
                     if (transactionId > 0) {

@@ -407,21 +407,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (id > 0) {
                 Log.d("DatabaseHelper", "Transaction inserted successfully with ID: " + id);
                 
-                // Verify the transaction data after insertion
+                // Run detailed verification query
                 Cursor cursor = db.query(TABLE_TRANSACTIONS, 
-                    new String[]{COLUMN_AMOUNT, COLUMN_TRANSACTION_DATE}, 
+                    new String[]{"*"}, // Get all columns 
                     COLUMN_ID + "=?", new String[]{String.valueOf(id)}, 
                     null, null, null);
                 
                 if (cursor != null && cursor.moveToFirst()) {
+                    // Get and log all column values
                     double savedAmount = cursor.getDouble(cursor.getColumnIndex(COLUMN_AMOUNT));
+                    String savedStatus = cursor.getString(cursor.getColumnIndex(COLUMN_STATUS));
                     String savedDate = cursor.getString(cursor.getColumnIndex(COLUMN_TRANSACTION_DATE));
                     
-                    Log.d("DatabaseHelper", "Verification - Saved amount: " + savedAmount + 
-                            ", Saved date: " + savedDate);
+                    Log.d("DatabaseHelper", "VERIFICATION DETAILS: " +
+                            "\n - ID: " + id +
+                            "\n - Amount (original): " + amount + 
+                            "\n - Amount (saved): " + savedAmount +
+                            "\n - Status (original): " + status +
+                            "\n - Status (saved): " + savedStatus +
+                            "\n - Date: " + savedDate);
                     
                     cursor.close();
                 }
+                
+                // Immediately verify that this transaction will be counted in getTotalAmountPaid
+                double testTotal = getTotalAmountPaid();
+                Log.d("DatabaseHelper", "Current total amount paid (after adding transaction): " + testTotal);
             } else {
                 Log.e("DatabaseHelper", "Failed to insert transaction");
             }
@@ -708,15 +719,52 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public double getTotalAmountPaid() {
         double totalAmountPaid = 0.0;
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT SUM(" + COLUMN_AMOUNT + ") FROM " + TABLE_TRANSACTIONS + " WHERE " + COLUMN_STATUS + " = 'success'", null);
-        if (cursor != null && cursor.moveToFirst()) {
-            totalAmountPaid = cursor.getDouble(0);
-            Log.d("DatabaseHelper", "Total Amount Paid: " + totalAmountPaid);
-            cursor.close();
-        } else {
-            Log.d("DatabaseHelper", "No successful transactions found.");
+        
+        try {
+            // Query to get the sum of all successful transactions (check for both "success" and "completed" statuses)
+            String query = "SELECT SUM(" + COLUMN_AMOUNT + ") FROM " + TABLE_TRANSACTIONS + 
+                          " WHERE " + COLUMN_STATUS + " = 'success' OR " + COLUMN_STATUS + " = 'completed'";
+            Log.d("DatabaseHelper", "Executing query: " + query);
+            
+            Cursor cursor = db.rawQuery(query, null);
+            
+            if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) {
+                totalAmountPaid = cursor.getDouble(0);
+                Log.d("DatabaseHelper", "Total Amount Paid from DB: " + totalAmountPaid);
+                cursor.close();
+            } else {
+                Log.d("DatabaseHelper", "No successful transactions found or sum returned null.");
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+            
+            // Verify with a count query
+            cursor = db.rawQuery("SELECT COUNT(*), SUM(" + COLUMN_AMOUNT + ") FROM " + TABLE_TRANSACTIONS + 
+                                " WHERE " + COLUMN_STATUS + " = 'success' OR " + COLUMN_STATUS + " = 'completed'", null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int count = cursor.getInt(0);
+                double sum = cursor.isNull(1) ? 0.0 : cursor.getDouble(1);
+                Log.d("DatabaseHelper", "Verification - Successful transaction count: " + count + ", Sum: " + sum);
+                cursor.close();
+            }
+            
+            // For debugging, also log all transactions regardless of status
+            cursor = db.rawQuery("SELECT " + COLUMN_AMOUNT + ", " + COLUMN_STATUS + " FROM " + TABLE_TRANSACTIONS, null);
+            if (cursor != null && cursor.getCount() > 0) {
+                Log.d("DatabaseHelper", "--- All transactions in database ---");
+                while (cursor.moveToNext()) {
+                    double amount = cursor.getDouble(cursor.getColumnIndex(COLUMN_AMOUNT));
+                    String status = cursor.getString(cursor.getColumnIndex(COLUMN_STATUS));
+                    Log.d("DatabaseHelper", "Transaction: amount=" + amount + ", status=" + status);
+                }
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error getting total amount paid: " + e.getMessage(), e);
         }
-        Log.d("DatabaseHelper", "Query executed: SELECT SUM(" + COLUMN_AMOUNT + ") FROM " + TABLE_TRANSACTIONS + " WHERE " + COLUMN_STATUS + " = 'success'");
+        
+        Log.d("DatabaseHelper", "Final total amount paid value: " + totalAmountPaid);
         return totalAmountPaid;
     }
 }
