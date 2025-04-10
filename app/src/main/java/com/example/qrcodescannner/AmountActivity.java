@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Collections;
+import java.lang.StringBuilder;
 
 public class AmountActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -67,8 +69,9 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
     private String selectedApp = ""; // Remove default selection
 
     private static final int MAX_AMOUNT = 100000; // Maximum amount limit
+    private String gpayPlayStoreLink = "https://play.google.com/store/apps/details?id=com.google.android.apps.nbu.paisa.user"; // Google Pay Play Store link
     private String credPlayStoreLink = "https://play.google.com/store/apps/details?id=com.dreamplug.androidapp"; // CRED Play Store link
-    private String naviPlayStoreLink = "https://play.google.com/store/apps/details?id=com.navi.android"; // Navi Play Store link
+    private String naviPlayStoreLink = "https://play.google.com/store/apps/details?id=com.naviapp&hl=en"; // Corrected Navi Play Store link
     private String supermoneyPlayStoreLink = "https://play.google.com/store/apps/details?id=money.super.payments&hl=en"; // Supermoney Play Store link
     private String paytmPlayStoreLink = "https://play.google.com/store/apps/details?id=net.one97.paytm"; // Paytm Play Store link
     private String phonepePlayStoreLink = "https://play.google.com/store/apps/details?id=com.phonepe.app"; // PhonePe Play Store link
@@ -146,200 +149,64 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
     // Centralized method to check transactions and update UI accordingly
     private void updateAppPositionsBasedOnTransactions() {
         try {
-            // Get today's date for transaction count
             String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
             
-            // Get transaction counts for each app
-            int naviCount = databaseHelper.getTransactionCountForApp("com.naviapp", today);
-            int credCount = databaseHelper.getTransactionCountForApp("com.dreamplug.androidapp", today);
-            int gpayCount = databaseHelper.getTransactionCountForApp("com.google.android.apps.nbu.paisa.user", today);
-            int superCount = databaseHelper.getTransactionCountForApp("money.super.payments", today);
-            int paytmCount = databaseHelper.getTransactionCountForApp("net.one97.paytm", today);
-            int phonepeCount = databaseHelper.getTransactionCountForApp("com.phonepe.app", today);
+            // Get successful transaction counts
+            int naviCount = databaseHelper.getTransactionCountForApp("com.naviapp", today, "success");
+            int credCount = databaseHelper.getTransactionCountForApp("com.dreamplug.androidapp", today, "success");
+            int gpayCount = databaseHelper.getTransactionCountForApp("com.google.android.apps.nbu.paisa.user", today, "success");
+            int superCount = databaseHelper.getTransactionCountForApp("money.super.payments", today, "success");
+            int paytmCount = databaseHelper.getTransactionCountForApp("net.one97.paytm", today, "success");
+            int phonepeCount = databaseHelper.getTransactionCountForApp("com.phonepe.app", today, "success");
             
-            // Determine which apps are available based on transaction limits
-            boolean isNaviAvailable = naviCount < 1;
-            boolean isCredAvailable = credCount < 1;
-            boolean isGpayAvailable = gpayCount < 1;
-            boolean isSuperAvailable = superCount < 1;
-            boolean isPaytmAvailable = paytmCount < 1;
-            boolean isPhonepeAvailable = phonepeCount < 1;
+            // Log counts for debugging
+            Log.d("AmountActivity", "App transaction counts (success only) - " +
+                    "Navi: " + naviCount + ", " +
+                    "CRED: " + credCount + ", " +
+                    "GPay: " + gpayCount + ", " +
+                    "SuperMoney: " + superCount + ", " +
+                    "Paytm: " + paytmCount + ", " +
+                    "PhonePe: " + phonepeCount);
             
-            // Update cashback text for apps that reached limit
-            if (!isNaviAvailable && naviCard != null) {
-                updateCashbackText(naviCard, "Daily limit reached");
-            }
-            if (!isCredAvailable && credpayCard != null) {
-                updateCashbackText(credpayCard, "Daily limit reached");
-            }
-            if (!isGpayAvailable && gpayCard != null) {
-                updateCashbackText(gpayCard, "Daily limit reached");
-            }
-            if (!isSuperAvailable && supermoneyCard != null) {
-                updateCashbackText(supermoneyCard, "Daily limit reached");
-            }
-            if (!isPaytmAvailable && paytmCard != null) {
-                updateCashbackText(paytmCard, "Daily limit reached");
-            }
-            if (!isPhonepeAvailable && phonepeCard != null) {
-                updateCashbackText(phonepeCard, "Daily limit reached");
-            }
+            // Create a list of payment apps with limits
+            List<PaymentApp> appListWithLimits = new ArrayList<>();
             
-            // Get the parent LinearLayout inside the ScrollView
-            HorizontalScrollView scrollView = findViewById(R.id.scrollView);
-            if (scrollView == null) {
-                Log.e("AmountActivity", "ScrollView not found");
-                return;
-            }
+            // Add all apps with their details
+            appListWithLimits.add(new PaymentApp("Navi", "com.naviapp", R.drawable.navilogo, 1, naviCount, 3.0));
+            appListWithLimits.add(new PaymentApp("CRED", "com.dreamplug.androidapp", R.drawable.credlogo, 1, credCount, 1.0));
+            appListWithLimits.add(new PaymentApp("Google Pay", "com.google.android.apps.nbu.paisa.user", R.drawable.gpaylogo, 1, gpayCount, 0.0));
+            appListWithLimits.add(new PaymentApp("SuperMoney", "money.super.payments", R.drawable.supermoneylogo, 1, superCount, 3.0));
+            appListWithLimits.add(new PaymentApp("Paytm", "net.one97.paytm", R.drawable.paytmlogo, 1, paytmCount, 0.0));
+            appListWithLimits.add(new PaymentApp("PhonePe", "com.phonepe.app", R.drawable.phonepelogo, 1, phonepeCount, 0.0));
             
-            LinearLayout parentLayout = (LinearLayout) scrollView.getChildAt(0);
-            if (parentLayout == null) {
-                Log.e("AmountActivity", "Parent layout not found");
-                return;
-            }
+            // Sort apps: first by remaining capacity (limit - count), then by cashback amount
+            Collections.sort(appListWithLimits, (app1, app2) -> {
+                // First sort by whether they have remaining capacity
+                boolean app1HasCapacity = app1.getCount() < app1.getLimit();
+                boolean app2HasCapacity = app2.getCount() < app2.getLimit();
+                
+                if (app1HasCapacity && !app2HasCapacity) return -1; // app1 has capacity, app2 doesn't
+                if (!app1HasCapacity && app2HasCapacity) return 1;  // app2 has capacity, app1 doesn't
+                
+                // If both have capacity or both don't, sort by cashback (higher first)
+                return Double.compare(app2.getCashback(), app1.getCashback());
+            });
             
-            // Create a list of app cards with their transaction counts
-            List<View> availableCards = new ArrayList<>();
-            List<View> limitReachedCards = new ArrayList<>();
-
-            // Check each app and add to appropriate list
-            if (isNaviAvailable) {
-                availableCards.add(naviCard);
-            } else {
-                limitReachedCards.add(naviCard);
+            // Log sorted order
+            StringBuilder logMsg = new StringBuilder("Sorted app order: ");
+            for (PaymentApp app : appListWithLimits) {
+                logMsg.append(app.getName())
+                      .append(" (count: ").append(app.getCount())
+                      .append(", limit: ").append(app.getLimit())
+                      .append(", cashback: ").append(app.getCashback())
+                      .append("), ");
             }
-
-            if (isCredAvailable) {
-                availableCards.add(credpayCard);
-            } else {
-                limitReachedCards.add(credpayCard);
-            }
-
-            if (isGpayAvailable) {
-                availableCards.add(gpayCard);
-            } else {
-                limitReachedCards.add(gpayCard);
-            }
-
-            if (isSuperAvailable) {
-                availableCards.add(supermoneyCard);
-            } else {
-                limitReachedCards.add(supermoneyCard);
-            }
-
-            if (isPaytmAvailable) {
-                availableCards.add(paytmCard);
-            } else {
-                limitReachedCards.add(paytmCard);
-            }
-
-            if (isPhonepeAvailable) {
-                availableCards.add(phonepeCard);
-            } else {
-                limitReachedCards.add(phonepeCard);
-            }
-
-            // Remove all views from the layout
-            parentLayout.removeAllViews();
-
-            // Add all available cards first
-            for (View card : availableCards) {
-                parentLayout.addView(card);
-            }
-
-            // Add all limit reached cards at the end
-            for (View card : limitReachedCards) {
-                parentLayout.addView(card);
-            }
-
-            // Reset all selection states
-            isGpaySelected = false;
-            isCredSelected = false;
-            isNaviSelected = false;
-            isSuperSelected = false;
-            isPaytmSelected = false;
-            isPhonepeSelected = false;
-
-            // Check if the currently selected app is still available
-            boolean isSelectedAppAvailable = false;
-            if (!selectedApp.isEmpty()) {
-                switch (selectedApp) {
-                    case "com.naviapp":
-                        isSelectedAppAvailable = isNaviAvailable;
-                        break;
-                    case "com.dreamplug.androidapp":
-                        isSelectedAppAvailable = isCredAvailable;
-                        break;
-                    case "com.google.android.apps.nbu.paisa.user":
-                        isSelectedAppAvailable = isGpayAvailable;
-                        break;
-                    case "money.super.payments":
-                        isSelectedAppAvailable = isSuperAvailable;
-                        break;
-                    case "net.one97.paytm":
-                        isSelectedAppAvailable = isPaytmAvailable;
-                        break;
-                    case "com.phonepe.app":
-                        isSelectedAppAvailable = isPhonepeAvailable;
-                        break;
-                }
-            }
-
-            // If no app is selected or the selected app is no longer available,
-            // select the first available app
-            if (selectedApp.isEmpty() || !isSelectedAppAvailable) {
-                if (!availableCards.isEmpty()) {
-                    View firstCard = availableCards.get(0);
-                    if (firstCard == naviCard) {
-                        selectedApp = "com.naviapp";
-                        isNaviSelected = true;
-                    } else if (firstCard == credpayCard) {
-                        selectedApp = "com.dreamplug.androidapp";
-                        isCredSelected = true;
-                    } else if (firstCard == gpayCard) {
-                        selectedApp = "com.google.android.apps.nbu.paisa.user";
-                        isGpaySelected = true;
-                    } else if (firstCard == supermoneyCard) {
-                        selectedApp = "money.super.payments";
-                        isSuperSelected = true;
-                    } else if (firstCard == paytmCard) {
-                        selectedApp = "net.one97.paytm";
-                        isPaytmSelected = true;
-                    } else if (firstCard == phonepeCard) {
-                        selectedApp = "com.phonepe.app";
-                        isPhonepeSelected = true;
-                    }
-                }
-            } else {
-                // Maintain the current selection
-                switch (selectedApp) {
-                    case "com.naviapp":
-                        isNaviSelected = true;
-                        break;
-                    case "com.dreamplug.androidapp":
-                        isCredSelected = true;
-                        break;
-                    case "com.google.android.apps.nbu.paisa.user":
-                        isGpaySelected = true;
-                        break;
-                    case "money.super.payments":
-                        isSuperSelected = true;
-                        break;
-                    case "net.one97.paytm":
-                        isPaytmSelected = true;
-                        break;
-                    case "com.phonepe.app":
-                        isPhonepeSelected = true;
-                        break;
-                }
-            }
-
-            // Update UI to reflect current selection
+            Log.d("AmountActivity", logMsg.toString());
+            
+            // Update UI based on sorted order
             updateCardSelection();
-            updatePayButton();
-            
         } catch (Exception e) {
-            Log.e("AmountActivity", "Error updating app positions: " + e.getMessage());
+            Log.e("AmountActivity", "Error updating app positions: " + e.getMessage(), e);
         }
     }
 
@@ -493,7 +360,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
 
     private void updateCardSelection() {
         int selectedColor = ContextCompat.getColor(this, R.color.green); // Green color for selected
-        int unselectedColor = ContextCompat.getColor(this, R.color.black_shade_1);
+        int unselectedColor = ContextCompat.getColor(this, R.color.card_unselected);
         
         // Set all cards to unselected first
         gpayCard.setCardBackgroundColor(unselectedColor);
@@ -635,9 +502,11 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
             final String appName = getAppNameFromPackage(selectedApp);
             
             try {
-                // Launch payment app without any handler delay
-                launchPayment(selectedApp, amountInt);
+                // Launch payment app and check if successful
+                boolean appLaunched = launchPayment(selectedApp, amountInt);
                 
+                // Only show completion dialog if the app was successfully launched
+                if (appLaunched) {
                 // Show dialog after a brief delay to allow app switching animation
                 new android.os.Handler().postDelayed(new Runnable() {
                     @Override
@@ -647,6 +516,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                         }
                     }
                 }, 1500); // Use 1.5 second delay for better UX
+                }
                 
         } catch (Exception e) {
                 Log.e("AmountActivity", "Error launching payment: " + e.getMessage(), e);
@@ -701,7 +571,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                             amount,             // payment amount
                             selectedApp,        // app package name
                             cashbackAmount,     // calculated cashback
-                            "completed"         // transaction status
+                            "success"           // transaction status (changed from "completed" to "success")
                     );
                     
                     if (transactionId > 0) {
@@ -754,13 +624,14 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                     Log.d("AmountActivity", "Recording failed transaction - Amount: ₹" + amount + 
                             ", App: " + selectedApp + ", Timestamp: " + timestamp);
                     
-                    // Record the failed transaction in the database
+                    // Record the failed transaction in the database but with status "failed"
+                    // This will record the transaction but NOT count toward daily app limits
                     long transactionId = databaseHelper.addTransaction(
                             userId,             // user ID
                             amount,             // payment amount
                             selectedApp,        // app package name
                             0,                  // no cashback for failed transactions
-                            "failed"            // transaction status
+                            "failed"            // transaction status (keep as "failed")
                     );
                     
                     if (transactionId > 0) {
@@ -768,6 +639,10 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                     } else {
                         Log.e("AmountActivity", "Failed to record failed transaction");
                     }
+
+                    // Don't increment the app's daily counter in SharedPreferences for failed transactions
+                    // This ensures failed transactions don't count toward daily limits
+                    
                 } catch (Exception e) {
                     Log.e("AmountActivity", "Error recording failed transaction: " + e.getMessage(), e);
                 }
@@ -925,7 +800,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
         launchPayment("com.phonepe.app", amount);
     }
 
-    private void launchPayment(String packageName, int amount) {
+    private boolean launchPayment(String packageName, int amount) {
         String uri = "upi://pay?pa=" + upiIdTextView.getText().toString() +
                 "&pn=" + payeeNameTextView.getText().toString() +
                 "&am=" + amount +
@@ -939,6 +814,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
         if (isAppInstalled(packageName)) {
             try {
                     startActivity(intent);
+                return true; // App was launched successfully
             } catch (ActivityNotFoundException e) {
                 // Try alternative package if available
                 String altPackage = getAlternativePackage(packageName);
@@ -949,7 +825,7 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                         altIntent.setData(Uri.parse(uri));
                         altIntent.setPackage(altPackage);
                         startActivity(altIntent);
-                return;
+                        return true; // Alternative app was launched successfully
                     } catch (ActivityNotFoundException ex) {
                         Log.e("PaymentApp", "Alternative app also failed to launch: " + ex.getMessage());
                     }
@@ -958,23 +834,25 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
                 // If all fails, show the chooser
                 Intent chooser = Intent.createChooser(intent, "Pay with");
                 startActivity(chooser);
+                return true; // Chooser was shown
             }
             } else {
             String playStoreLink = getPlayStoreLink(packageName);
             showDownloadDialog("App Not Installed", playStoreLink);
+            return false; // App was not launched because it's not installed
         }
     }
 
     private String getAlternativePackage(String packageName) {
         switch (packageName) {
             case "com.naviapp":
-                return "com.navi.android";
+                return null; // No alternative needed - this is the correct package
             case "money.super.payments":
                 return "com.supermoney";
             case "com.dreamplug.androidapp":
                 return "com.cred.club";
-            case "com.navi.android":
-                return "com.naviapp";
+            case "com.navi.android": // Old package name for Navi
+                return "com.naviapp"; // Map to correct package
             case "com.supermoney":
                 return "money.super.payments";
             case "com.cred.club":
@@ -1031,15 +909,41 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void showDownloadDialog(String title, String playStoreLink) {
+        Log.d("PaymentApp", "Showing download dialog for Play Store link: " + playStoreLink);
+        
+        String appName = "selected";
+        if (playStoreLink.equals(gpayPlayStoreLink)) {
+            appName = "Google Pay";
+        } else if (playStoreLink.equals(credPlayStoreLink)) {
+            appName = "CRED";
+        } else if (playStoreLink.equals(naviPlayStoreLink)) {
+            appName = "Navi";
+        } else if (playStoreLink.equals(supermoneyPlayStoreLink)) {
+            appName = "SuperMoney";
+        } else if (playStoreLink.equals(paytmPlayStoreLink)) {
+            appName = "Paytm";
+        } else if (playStoreLink.equals(phonepePlayStoreLink)) {
+            appName = "PhonePe";
+        }
+        
+        Log.d("PaymentApp", "App being redirected to Play Store: " + appName);
+        
         new AlertDialog.Builder(this)
                 .setTitle(title)
-                .setMessage("The selected app is not installed. Do you want to continue to the Play Store to download it?")
+                .setMessage("The " + appName + " app is not installed. Do you want to continue to the Play Store to download it?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         // Redirect to Play Store
+                        try {
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(Uri.parse(playStoreLink));
+                            Log.d("PaymentApp", "Launching Play Store with link: " + playStoreLink);
                         startActivity(intent);
+                            Log.d("PaymentApp", "Successfully redirected to Play Store");
+                        } catch (ActivityNotFoundException e) {
+                            Log.e("PaymentApp", "Failed to open Play Store: " + e.getMessage());
+                            Toast.makeText(AmountActivity.this, "Couldn't open Google Play Store", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -1056,13 +960,13 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
             // Get today's date in yyyy-MM-dd format
             String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
             
-            // Get transaction counts for TODAY ONLY
-            int naviCount = databaseHelper.getTransactionCountForApp("com.naviapp", today);
-            int credCount = databaseHelper.getTransactionCountForApp("com.dreamplug.androidapp", today);
-            int gpayCount = databaseHelper.getTransactionCountForApp("com.google.android.apps.nbu.paisa.user", today);
-            int superCount = databaseHelper.getTransactionCountForApp("money.super.payments", today);
-            int paytmCount = databaseHelper.getTransactionCountForApp("net.one97.paytm", today);
-            int phonepeCount = databaseHelper.getTransactionCountForApp("com.phonepe.app", today);
+            // Get transaction counts for TODAY ONLY - for SUCCESSFUL transactions only
+            int naviCount = databaseHelper.getTransactionCountForApp("com.naviapp", today, "success");
+            int credCount = databaseHelper.getTransactionCountForApp("com.dreamplug.androidapp", today, "success");
+            int gpayCount = databaseHelper.getTransactionCountForApp("com.google.android.apps.nbu.paisa.user", today, "success");
+            int superCount = databaseHelper.getTransactionCountForApp("money.super.payments", today, "success");
+            int paytmCount = databaseHelper.getTransactionCountForApp("net.one97.paytm", today, "success");
+            int phonepeCount = databaseHelper.getTransactionCountForApp("com.phonepe.app", today, "success");
             
             // Get the parent LinearLayout inside the ScrollView
             HorizontalScrollView scrollView = findViewById(R.id.scrollView);
@@ -1518,5 +1422,60 @@ public class AmountActivity extends AppCompatActivity implements View.OnClickLis
         }
         
         return counts;
+    }
+
+    private class PaymentApp {
+        private String name;
+        private String packageName;
+        private int iconResource;
+        private int limit;
+        private int count;
+        private double cashback;
+        
+        public PaymentApp(String name, String packageName, int iconResource) {
+            this.name = name;
+            this.packageName = packageName;
+            this.iconResource = iconResource;
+            this.limit = 1; // Default limit is 1 transaction per day
+            this.count = 0;
+            this.cashback = 0.0;
+        }
+        
+        public PaymentApp(String name, String packageName, int iconResource, int limit, int count, double cashback) {
+            this.name = name;
+            this.packageName = packageName;
+            this.iconResource = iconResource;
+            this.limit = limit;
+            this.count = count;
+            this.cashback = cashback;
+        }
+        
+        public String getName() {
+            return name;
+        }
+        
+        public String getPackageName() {
+            return packageName;
+        }
+        
+        public int getIconResource() {
+            return iconResource;
+        }
+        
+        public int getLimit() {
+            return limit;
+        }
+        
+        public int getCount() {
+            return count;
+        }
+        
+        public double getCashback() {
+            return cashback;
+        }
+        
+        public boolean isAvailable() {
+            return count < limit;
+        }
     }
 }

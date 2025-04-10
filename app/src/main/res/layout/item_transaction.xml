@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="16dp"
-    android:background="@color/backgroundCard">
+    android:padding="8dp"
+    android:background="?attr/cardBackgroundColor">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/textPrimary"
+            android:textColor="?android:textColorPrimary"
             android:text="App Name" />
 
         <TextView
@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="14sp"
-            android:textColor="@color/textSecondary"
+            android:textColor="?android:textColorSecondary"
             android:textStyle="italic"
             android:text="Transaction Date"
             android:layout_marginTop="4dp" />
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="8dp"
-        android:textColor="@color/colorPrimary"
+        android:textColor="?attr/colorPrimary"
         android:textSize="20sp"
         android:textStyle="bold"
         android:text="₹100" />

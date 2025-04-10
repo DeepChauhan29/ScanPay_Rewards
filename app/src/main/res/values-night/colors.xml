@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Dark Theme Colors -->
-    <color name="backgroundDark">#121212</color>
-    <color name="surfaceDark">#1E1E1E</color>
-    <color name="textPrimary">#FFFFFF</color> <!-- White for dark theme -->
-    <color name="textSecondaryDark">#B3FFFFFF</color>
-    <color name="dividerDark">#2C2C2C</color>
-    <color name="rippleDark">#33FFFFFF</color>
+    <!-- This file is intentionally kept empty. -->
+    <!-- All colors (including dark theme colors) are now defined in the main colors.xml file -->
     
-    <!-- Common Colors -->
-    <!-- Add any additional common colors here -->
+    <!-- Override light theme colors with dark theme equivalents -->
+    <color name="textPrimary">@color/textPrimaryDark</color>
+    <color name="textSecondary">@color/textSecondaryDark</color>
+    <color name="backgroundPrimaryLight">@color/backgroundPrimaryDark</color>
+    <color name="backgroundSecondaryLight">@color/backgroundSecondaryDark</color>
+    <color name="cardBackgroundLight">@color/cardBackgroundDark</color>
+    <color name="dividerLight">@color/dividerDark</color>
+    <color name="borderLight">@color/borderDark</color>
+    <color name="bottomNavBackgroundLight">@color/bottomNavBackgroundDark</color>
+    <color name="bottomNavUnselectedLight">@color/bottomNavUnselectedDark</color>
+    <color name="rippleLight">@color/rippleDark</color>
+    <color name="card_unselected">@color/cardUnselectedDark</color>
+    
+    <!-- Also override the deprecated colors for backwards compatibility -->
+    <color name="backgroundPrimary">@color/backgroundPrimaryDark</color>
+    <color name="backgroundSecondary">@color/backgroundSecondaryDark</color>
+    <color name="backgroundCard">@color/cardBackgroundDark</color>
 </resources> 

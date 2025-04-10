@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
@@ -58,8 +60,9 @@ import java.util.concurrent.Executors;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.Locale;
+
 public class HomeActivity extends AppCompatActivity {
-    private Button Scanbtn;
     private PreviewView previewView;
     private static final String TAG = "HomeActivity";
     private BarcodeScanner barcodeScanner;
@@ -67,7 +70,7 @@ public class HomeActivity extends AppCompatActivity {
     private CameraControl cameraControl; // CameraControl instance
     private float zoomRatio = 1.0f; // Initial zoom ratio
     private int frameCount = 0; // Counter to skip frames
-    private static final int FRAME_SKIP_COUNT = 2; // Analyze every 3rd frame
+    private static final int FRAME_SKIP_COUNT = 1; // Reduced from 2 to analyze more frames
     private ProcessCameraProvider cameraProvider;
     private Preview preview;
     private ImageAnalysis imageAnalysis;
@@ -83,7 +86,7 @@ public class HomeActivity extends AppCompatActivity {
     private TextView welcomeText, userNameText, totalTransactions, totalAmountPaid;
     private DatabaseHelper databaseHelper;
     private SharedPreferences sharedPreferences;
-    private static final long AUTO_PAUSE_DELAY = 3000; // 3 seconds
+    private static final long AUTO_PAUSE_DELAY = 6000; // 6 seconds
     private Handler autoPauseHandler;
     private FrameLayout tapToScanOverlay;
 
@@ -94,7 +97,7 @@ public class HomeActivity extends AppCompatActivity {
 
         // Initialize auto-pause handler
         autoPauseHandler = new Handler();
-        
+
         // Initialize views
         welcomeText = findViewById(R.id.welcomeText);
         userNameText = findViewById(R.id.userNameText);
@@ -102,6 +105,9 @@ public class HomeActivity extends AppCompatActivity {
         totalAmountPaid = findViewById(R.id.totalAmountPaid);
         previewView = findViewById(R.id.previewView);
         tapToScanOverlay = findViewById(R.id.tapToScanOverlay);
+        
+        // Setup tap to resume overlay right after initializing it
+        setupTapToResumeOverlay();
         
         // Initialize DatabaseHelper and SharedPreferences
         databaseHelper = new DatabaseHelper(this);
@@ -150,15 +156,22 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         // Initialize FloatingActionButtons
-        FloatingActionButton scanFab = findViewById(R.id.scanButton);
         FloatingActionButton galleryFab = findViewById(R.id.gallery);
-        
-        scanFab.setOnClickListener(v -> startCamera());
         galleryFab.setOnClickListener(v -> openGallery());
+        
+        // Add click listener to total amount paid to force refresh
+        totalAmountPaid.setOnClickListener(v -> {
+            forceRefreshStatistics();
+        });
+        
+        // Long press on the amount will clear all transactions (for testing only)
+        totalAmountPaid.setOnLongClickListener(v -> {
+            clearAllTransactions();
+            return true;
+        });
 
         // Initialize bottom navigation
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        if (bottomNavigationView != null) {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -175,7 +188,6 @@ public class HomeActivity extends AppCompatActivity {
             }
             return false;
         });
-        }
 
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -183,8 +195,6 @@ public class HomeActivity extends AppCompatActivity {
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
-
-        setupTapToResumeOverlay();
     }
 
     @Override
@@ -254,12 +264,8 @@ public class HomeActivity extends AppCompatActivity {
 
     @OptIn(markerClass = ExperimentalGetImage.class)
     private void universalUPIScanner(ImageProxy imageProxy) {
-        if (frameCount++ % FRAME_SKIP_COUNT != 0) {
-            imageProxy.close();
-            return; // Skip frames to reduce processing load
-        }
-
         try {
+            // Remove frame skipping to ensure we analyze every frame
             // Check for null image before processing
             if (imageProxy.getImage() == null) {
                 Log.e(TAG, "Null image received from camera");
@@ -268,9 +274,19 @@ public class HomeActivity extends AppCompatActivity {
             }
             
             InputImage image = InputImage.fromMediaImage(imageProxy.getImage(), imageProxy.getImageInfo().getRotationDegrees());
+            
+            // Log that we're processing an image
+            Log.d(TAG, "Processing image for QR code at rotation: " + imageProxy.getImageInfo().getRotationDegrees());
 
             barcodeScanner.process(image)
                     .addOnSuccessListener(barcodes -> {
+                        if (barcodes.isEmpty()) {
+                            // No barcodes detected
+                            Log.d(TAG, "No barcodes detected in this frame");
+                        } else {
+                            Log.d(TAG, "Detected " + barcodes.size() + " barcodes");
+                        }
+                        
                         for (Barcode barcode : barcodes) {
                             String rawValue = barcode.getRawValue();
                             Log.d("QRDebug", "Scanned QR Code Data: " + rawValue);
@@ -279,15 +295,15 @@ public class HomeActivity extends AppCompatActivity {
                                 Log.d("QRDebug", "Valid UPI QR code detected");
                                 runOnUiThread(() -> parseUPIData(rawValue));
                                 return; // Stop processing after first valid QR code
-                            } else {
+                            } else if (rawValue != null) {
                                 Log.w("QRDebug", "Non-UPI QR Code detected: " + rawValue);
-                                runOnUiThread(() -> Toast.makeText(HomeActivity.this, "This is not a valid UPI QR Code", Toast.LENGTH_SHORT).show());
+                                runOnUiThread(() -> Toast.makeText(HomeActivity.this, "This is not a valid UPI QR Code: " + rawValue, Toast.LENGTH_SHORT).show());
                             }
                         }
                     })
                     .addOnFailureListener(e -> {
                         Log.e("QRDebug", "Barcode detection failed", e);
-                        runOnUiThread(() -> Toast.makeText(HomeActivity.this, "Failed to scan QR Code", Toast.LENGTH_SHORT).show());
+                        runOnUiThread(() -> Toast.makeText(HomeActivity.this, "Failed to scan QR Code: " + e.getMessage(), Toast.LENGTH_SHORT).show());
                     })
                     .addOnCompleteListener(task -> imageProxy.close());
         } catch (Exception e) {
@@ -536,9 +552,9 @@ public class HomeActivity extends AppCompatActivity {
                     .build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                // Create image analysis use case
+                // Create image analysis use case with higher resolution
                 imageAnalysis = new ImageAnalysis.Builder()
-                    .setTargetRotation(previewView.getDisplay().getRotation())
+                    .setTargetResolution(new Size(1280, 720))
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build();
                 imageAnalysis.setAnalyzer(cameraExecutor, this::universalUPIScanner);
@@ -551,17 +567,20 @@ public class HomeActivity extends AppCompatActivity {
                 try {
                     // Bind use cases to camera
                     Camera camera = cameraProvider.bindToLifecycle(
-                        this,
-                        cameraSelector,
-                        preview,
-                        imageAnalysis
-                    );
+                    this,
+                    cameraSelector,
+                    preview,
+                    imageAnalysis
+                );
                     cameraControl = camera.getCameraControl();
                     
                     // Hide the overlay when camera starts
                     if (tapToScanOverlay != null) {
                         tapToScanOverlay.setVisibility(View.GONE);
                     }
+                    
+                    // Log success
+                    Log.d(TAG, "Camera started successfully");
                     
                     // Start the auto-pause timer
                     startAutoPauseTimer();
@@ -666,6 +685,10 @@ public class HomeActivity extends AppCompatActivity {
         
         // Start auto-pause timer
         startAutoPauseTimer();
+        
+        // Update statistics to reflect any new transactions
+        updateStatistics();
+        Log.d(TAG, "onResume: Updated statistics");
     }
 
     private void loadUserData() {
@@ -685,23 +708,85 @@ public class HomeActivity extends AppCompatActivity {
                 // Get total transactions
                 int transactionCount = databaseHelper.getTotalTransactionCount();
                 totalTransactions.setText(String.valueOf(transactionCount));
+                Log.d(TAG, "Total transaction count: " + transactionCount);
 
-                // Get total amount paid
+                // Get total amount paid with debug info
+                debugCheckTransactions();
+
                 double totalAmountPaidValue = databaseHelper.getTotalAmountPaid();
-                totalAmountPaid.setText("₹" + String.format("%.2f", totalAmountPaidValue));
+                
+                // Ensure the amount is properly displayed
+                // Format with two decimal places
+                String formattedAmount = String.format(Locale.getDefault(), "₹%.2f", totalAmountPaidValue);
+                totalAmountPaid.setText(formattedAmount);
+                
+                Log.d(TAG, "Total amount paid: " + totalAmountPaidValue + " formatted as: " + formattedAmount);
+            } else {
+                Log.e(TAG, "TextViews are null: transactions=" + (totalTransactions == null) + 
+                          ", amountPaid=" + (totalAmountPaid == null));
             }
         } catch (Exception e) {
-            Log.e(TAG, "Error updating statistics: " + e.getMessage());
+            Log.e(TAG, "Error updating statistics: " + e.getMessage(), e);
+            // Set default values in case of error
+            if (totalTransactions != null) {
+                totalTransactions.setText("0");
+            }
+            if (totalAmountPaid != null) {
+                totalAmountPaid.setText("₹0.00");
+            }
+        }
+    }
+    
+    private void debugCheckTransactions() {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        try {
+            // Debug query to check all transactions and their status
+            Cursor cursor = db.rawQuery("SELECT id, amount, app_name, transaction_date, status FROM transactions", null);
+            
+            Log.d(TAG, "=== DEBUG TRANSACTION CHECK ===");
+            Log.d(TAG, "Total rows in transactions table: " + cursor.getCount());
+            
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+                    double amount = cursor.getDouble(cursor.getColumnIndexOrThrow("amount"));
+                    String appName = cursor.getString(cursor.getColumnIndexOrThrow("app_name"));
+                    String date = cursor.getString(cursor.getColumnIndexOrThrow("transaction_date"));
+                    String status = cursor.getString(cursor.getColumnIndexOrThrow("status"));
+                    
+                    Log.d(TAG, "Transaction #" + id + ": Amount=" + amount + 
+                              ", App=" + appName + ", Date=" + date + 
+                              ", Status=" + status);
+                } while (cursor.moveToNext());
+                cursor.close();
+            } else {
+                Log.d(TAG, "No transactions found in database");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in debugCheckTransactions: " + e.getMessage(), e);
         }
     }
 
     private void setupTapToResumeOverlay() {
         if (tapToScanOverlay != null) {
+            // Set click listener for the entire overlay
             tapToScanOverlay.setOnClickListener(v -> {
-                Log.d(TAG, "Preview tapped to resume scanner and camera");
+                Log.d(TAG, "Overlay tapped to resume scanner and camera");
                 resumeCameraAndScanner();
                 startAutoPauseTimer(); // Restart the auto-pause timer
             });
+            
+            // Find the resume button and set its click listener
+            Button resumeButton = tapToScanOverlay.findViewById(R.id.resumeButton);
+            if (resumeButton != null) {
+                resumeButton.setOnClickListener(v -> {
+                    Log.d(TAG, "Resume button clicked to resume scanner and camera");
+                    resumeCameraAndScanner();
+                    startAutoPauseTimer(); // Restart the auto-pause timer
+                });
+            } else {
+                Log.e(TAG, "Resume button not found in overlay");
+            }
         }
     }
 
@@ -763,5 +848,76 @@ public class HomeActivity extends AppCompatActivity {
                 });
             }
         }, AUTO_PAUSE_DELAY);
+    }
+
+    private void forceRefreshStatistics() {
+        Log.d(TAG, "Force refreshing statistics...");
+        // Show a toast to indicate refresh
+        Toast.makeText(this, "Refreshing statistics...", Toast.LENGTH_SHORT).show();
+        
+        // Add a test transaction if none exist
+        addTestTransactionIfNeeded();
+        
+        // Run debug check
+        debugCheckTransactions();
+        
+        // Re-query the database with fresh data
+        updateStatistics();
+    }
+    
+    private void addTestTransactionIfNeeded() {
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        try {
+            // First check if we have any transactions at all
+            Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM transactions", null);
+            boolean hasTransactions = false;
+            if (cursor != null && cursor.moveToFirst()) {
+                int count = cursor.getInt(0);
+                hasTransactions = count > 0;
+                cursor.close();
+            }
+            
+            if (!hasTransactions) {
+                // No transactions found, add a test one
+                Log.d(TAG, "No transactions found. Adding a test transaction.");
+                
+                // Get user ID
+                SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+                String userId = prefs.getString("userId", "user123");
+                
+                // Add a test transaction for 1 rupee
+                long id = databaseHelper.addTransaction(
+                    userId,
+                    1.0,  // 1 rupee
+                    "com.google.android.apps.nbu.paisa.user",  // Google Pay
+                    0.0,  // No cashback
+                    "success"  // Success status
+                );
+                
+                if (id > 0) {
+                    Log.d(TAG, "Test transaction added successfully with ID: " + id);
+                    Toast.makeText(this, "Added test transaction of ₹1", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e(TAG, "Failed to add test transaction");
+                }
+            } else {
+                Log.d(TAG, "Transactions already exist in the database. Not adding test transaction.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error checking/adding test transaction: " + e.getMessage());
+        }
+    }
+
+    private void clearAllTransactions() {
+        try {
+            SQLiteDatabase db = databaseHelper.getWritableDatabase();
+            int rowsDeleted = db.delete("transactions", null, null);
+            Log.d(TAG, "Cleared " + rowsDeleted + " transactions from database");
+            Toast.makeText(this, "Cleared all transactions", Toast.LENGTH_SHORT).show();
+            updateStatistics();
+        } catch (Exception e) {
+            Log.e(TAG, "Error clearing transactions: " + e.getMessage());
+            Toast.makeText(this, "Error clearing transactions", Toast.LENGTH_SHORT).show();
+        }
     }
 }

@@ -51,7 +51,7 @@ public class SignupActivity extends AppCompatActivity {
 
         // Validate input
         if (TextUtils.isEmpty(username)) {
-            usernameEditText.setError("Username is required");
+            usernameEditText.setError("Name is required");
             return;
         }
         if (TextUtils.isEmpty(email)) {
